@@ -1,16 +1,36 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useColorScheme } from 'react-native';
+import { Stack, useRouter, useSegments } from 'expo-router';
+import { useAuth } from '../stores/auth';
+import "../global.css";
 
-import { AnimatedSplashOverlay } from '@/components/animated-icon';
-import AppTabs from '@/components/app-tabs';
+export default function RootLayout() {
+    const colorScheme = useColorScheme();
+    const { user } = useAuth();
+    const segments = useSegments();
+    const router = useRouter();
 
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
-  return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <AnimatedSplashOverlay />
-      <AppTabs />
-    </ThemeProvider>
-  );
+    useEffect(() => {
+        const inAuthGroup = segments[0] === '(auth)';
+
+        if (!user && !inAuthGroup) {
+            // Redirect to login if not authenticated
+            router.replace('/(auth)/login');
+        } else if (user && inAuthGroup) {
+            // Redirect to home if authenticated
+            router.replace('/(tabs)');
+        }
+    }, [user, segments]);
+
+    return (
+        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+            <Stack screenOptions={{ headerShown: false }}>
+                <Stack.Screen name="(auth)" />
+                <Stack.Screen name="(tabs)" />
+                <Stack.Screen name="seat-picker" options={{ presentation: 'modal' }} />
+                <Stack.Screen name="ticket-detail" options={{ presentation: 'modal' }} />
+            </Stack>
+        </ThemeProvider>
+    );
 }
