@@ -17,14 +17,12 @@ export default function TicketDetailScreen() {
     const router = useRouter();
     const { ticketId } = useLocalSearchParams();
     const { bookings, cancelBooking, loading } = useBookings();
-    const { routes } = useRoutes();
     
     const ticket = bookings.find(b => b.id === ticketId);
-    const route = routes.find(r => r.id === ticket?.routeId);
     const [isCancelConfirmOpen, setIsCancelConfirmOpen] = useState(false);
 
     if (!ticket) return null;
-    const sc = statusCfg[ticket.status as keyof typeof statusCfg];
+    const sc = statusCfg[ticket.status as keyof typeof statusCfg] || statusCfg.confirmed;
 
     const handleCancel = async () => {
         await cancelBooking(ticket.id);
@@ -45,30 +43,32 @@ export default function TicketDetailScreen() {
                 <View className="bg-white rounded-[40px] p-8 border border-slate-100 mb-8 shadow-sm">
                     <View className="bg-slate-900 rounded-[32px] p-6 items-center mb-8">
                         <Bus size={32} color="#10b981" className="mb-4" />
-                        <Text className="text-white font-mono font-bold text-2xl tracking-widest">{ticket.id}</Text>
-                        <Text className="text-slate-400 text-sm mt-2">
-                            {route ? `${route.from} → ${route.to}` : 'Unknown Route'}
+                        <Text className="text-white font-mono font-bold text-lg tracking-widest text-center">{ticket.id}</Text>
+                        <Text className="text-slate-400 text-sm mt-2 font-bold uppercase tracking-widest">
+                            {ticket.origin} → {ticket.destination}
                         </Text>
                     </View>
 
                     {/* Simulated QR Code */}
                     <View className="items-center mb-8">
-                        <View className={`p-4 bg-white rounded-[32px] border-[3px]`} style={{ borderColor: sc.color }}>
+                        <View className={`p-4 bg-white rounded-[32px] border-[3px]`} style={{ borderColor: ticket.payment_status === 'paid' ? '#10b981' : '#f59e0b' }}>
                             <View className="w-48 h-48 bg-slate-900 rounded-2xl items-center justify-center">
                                 <TicketIcon size={80} color="white" strokeWidth={1} />
-                                <Text className="text-emerald-500 text-[8px] font-mono mt-4">SCAN FOR BOARDING</Text>
+                                <Text className="text-emerald-500 text-[8px] font-mono mt-4 uppercase tracking-[4px]">
+                                    {ticket.payment_status === 'paid' ? 'VALID TICKET' : 'PAYMENT PENDING'}
+                                </Text>
                             </View>
                         </View>
                     </View>
 
                     <View className="flex-row flex-wrap gap-3">
                         {[
-                            { label: 'Date', value: ticket.date },
-                            { label: 'Departure', value: ticket.departure },
+                            { label: 'Date', value: new Date(ticket.booking_date).toLocaleDateString() },
+                            { label: 'Departure', value: ticket.departure_time },
                             { label: 'Seats', value: ticket.seats.join(', ') },
-                            { label: 'Fare', value: `₦${ticket.fare}` },
+                            { label: 'Total Fare', value: `₦${ticket.total_fare}` },
                             { label: 'Status', value: ticket.status.toUpperCase(), color: sc.color },
-                            { label: 'Bus', value: route?.busId || 'N/A' },
+                            { label: 'Payment', value: ticket.payment_status.toUpperCase(), color: ticket.payment_status === 'paid' ? '#10b981' : '#f59e0b' },
                         ].map(item => (
                             <View key={item.label} className="w-[47%] bg-slate-50 p-4 rounded-[24px]">
                                 <Text className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">{item.label}</Text>

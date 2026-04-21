@@ -10,6 +10,7 @@ export type User = {
 
 type AuthState = {
     user: User | null;
+    token: string | null;
     loading: boolean;
     login: (role: "student" | "admin") => Promise<void>;
     logout: () => void;
@@ -17,6 +18,7 @@ type AuthState = {
 
 export const useAuth = create<AuthState>((set) => ({
     user: null,
+    token: null,
     loading: false,
 
     login: async (role) => {
@@ -28,8 +30,8 @@ export const useAuth = create<AuthState>((set) => ({
             ? { id: "ADM001", name: "Dr. Amara Obi", role: "admin", email: "admin@uniph.edu.ng" }
             : { id: "STU001", name: "Chidi Nwosu", role: "student", email: "chidi@uniph.edu.ng", matric: "CSC/2021/042" };
         
-        set({ user: mockUser, loading: false });
+        set({ user: mockUser, token: "mock-jwt-token", loading: false });
     },
 
-    logout: () => set({ user: null }),
+    logout: () => set({ user: null, token: null }),
 }));

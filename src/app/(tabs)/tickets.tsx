@@ -1,8 +1,8 @@
 import { useState, useMemo, useEffect } from 'react';
 import { View, Text, ScrollView, SafeAreaView, TouchableOpacity, RefreshControl } from 'react-native';
-import { Ticket as TicketIcon, Calendar, Clock, Users, ArrowLeft, Trash2 } from 'lucide-react-native';
+import { Ticket as TicketIcon, Calendar, Clock, Users } from 'lucide-react-native';
 import { useBookings, type Booking } from '../../stores/bookings';
-import { useRoutes } from '../../stores/routes';
+import { useAuth } from '../../stores/auth';
 import { useRouter } from 'expo-router';
 
 const statusCfg = {
@@ -13,15 +13,14 @@ const statusCfg = {
 
 export default function TicketsScreen() {
     const { bookings, fetchMyBookings, loading } = useBookings();
-    const { routes } = useRoutes();
-    const router = useRouter();
+    const { user } = useAuth();
 
     useEffect(() => {
-        fetchMyBookings('STU001'); // Mock current user ID
-    }, []);
+        if (user) fetchMyBookings(user.id);
+    }, [user]);
 
-    const activeBookings = bookings.filter(b => b.status === 'confirmed');
-    const pastBookings = bookings.filter(b => b.status !== 'confirmed');
+    const activeBookings = bookings.filter(b => b.status === 'confirmed' || b.payment_status === 'paid');
+    const pastBookings = bookings.filter(b => b.status !== 'confirmed' && b.payment_status !== 'paid');
 
     return (
         <SafeAreaView className="flex-1 bg-slate-50">
@@ -34,10 +33,10 @@ export default function TicketsScreen() {
                 className="flex-1 px-6 pt-6" 
                 showsVerticalScrollIndicator={false}
                 refreshControl={
-                    <RefreshControl refreshing={loading} onRefresh={() => fetchMyBookings('STU001')} tintColor="#10b981" />
+                    <RefreshControl refreshing={loading} onRefresh={() => user && fetchMyBookings(user.id)} tintColor="#10b981" />
                 }
             >
-                {!bookings.length && (
+                {!bookings.length && !loading && (
                     <View className="items-center justify-center py-20">
                         <View className="w-20 h-20 bg-slate-50 rounded-full items-center justify-center mb-4">
                             <TicketIcon size={40} color="#cbd5e1" />
@@ -51,7 +50,7 @@ export default function TicketsScreen() {
                     <>
                         <Text className="text-xs font-bold text-emerald-500 uppercase tracking-widest mb-4">Active Trips</Text>
                         {activeBookings.map((b) => (
-                            <TicketCard key={b.id} ticket={b} routes={routes} />
+                            <TicketCard key={b.id} ticket={b} />
                         ))}
                     </>
                 )}
@@ -60,7 +59,7 @@ export default function TicketsScreen() {
                     <>
                         <Text className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-4 mb-4">Past Trips</Text>
                         {pastBookings.map((b) => (
-                            <TicketCard key={b.id} ticket={b} routes={routes} />
+                            <TicketCard key={b.id} ticket={b} />
                         ))}
                     </>
                 )}
@@ -70,9 +69,8 @@ export default function TicketsScreen() {
     );
 }
 
-function TicketCard({ ticket, routes }: { ticket: Booking, routes: any[] }) {
-    const route = routes.find(r => r.id === ticket.routeId);
-    const sc = statusCfg[ticket.status as keyof typeof statusCfg];
+function TicketCard({ ticket }: { ticket: Booking }) {
+    const sc = statusCfg[ticket.status as keyof typeof statusCfg] || statusCfg.confirmed;
     const router = useRouter();
 
     return (
@@ -86,24 +84,26 @@ function TicketCard({ ticket, routes }: { ticket: Booking, routes: any[] }) {
         >
             <View className="flex-row justify-between items-start mb-4">
                 <View>
-                    <Text className="font-mono text-[10px] text-slate-400 font-bold mb-1">{ticket.id}</Text>
+                    <Text className="font-mono text-[10px] text-slate-400 font-bold mb-1">{ticket.id.slice(0, 8)}...</Text>
                     <Text className="text-base font-bold text-slate-900">
-                        {route ? `${route.from.split(' ')[0]} → ${route.to.split(' ')[0]}` : 'Unknown Route'}
+                        {ticket.origin} → {ticket.destination}
                     </Text>
                 </View>
-                <View className={`${sc.bg} px-3 py-1 rounded-full`}>
-                    <Text className="text-[10px] font-bold uppercase" style={{ color: sc.color }}>{sc.label}</Text>
+                <View className={`${ticket.payment_status === 'paid' ? 'bg-emerald-50' : 'bg-orange-50'} px-3 py-1 rounded-full`}>
+                    <Text className={`text-[10px] font-bold uppercase ${ticket.payment_status === 'paid' ? 'text-emerald-600' : 'text-orange-600'}`}>
+                        {ticket.payment_status === 'paid' ? 'PAID' : 'PENDING'}
+                    </Text>
                 </View>
             </View>
 
             <View className="flex-row gap-4 mb-4">
                 <View className="flex-row items-center">
                     <Calendar size={12} color="#94a3b8" />
-                    <Text className="ml-2 text-xs font-medium text-slate-500">{ticket.date}</Text>
+                    <Text className="ml-2 text-xs font-medium text-slate-500">{new Date(ticket.booking_date).toLocaleDateString()}</Text>
                 </View>
                 <View className="flex-row items-center">
                     <Clock size={12} color="#94a3b8" />
-                    <Text className="ml-2 text-xs font-medium text-slate-500">{ticket.departure}</Text>
+                    <Text className="ml-2 text-xs font-medium text-slate-500">{ticket.departure_time}</Text>
                 </View>
                 <View className="flex-row items-center">
                     <Users size={12} color="#94a3b8" />
@@ -113,7 +113,7 @@ function TicketCard({ ticket, routes }: { ticket: Booking, routes: any[] }) {
 
             <View className="border-t border-slate-50 pt-4 flex-row justify-between items-center">
                 <Text className="text-slate-400 text-xs font-medium">Total Paid</Text>
-                <Text className="text-emerald-600 font-bold text-lg">₦{ticket.fare}</Text>
+                <Text className="text-emerald-600 font-bold text-lg">₦{ticket.total_fare}</Text>
             </View>
         </TouchableOpacity>
     );
