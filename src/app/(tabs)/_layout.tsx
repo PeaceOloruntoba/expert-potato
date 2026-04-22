@@ -1,7 +1,8 @@
 import { Tabs } from "expo-router";
 import { Bus, Ticket, User } from "lucide-react-native";
-import { View, Text } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 import { useBookings } from "../../stores/bookings";
+import { Colors } from "@/constants/theme";
 
 export default function TabLayout() {
     const { bookings } = useBookings();
@@ -12,27 +13,18 @@ export default function TabLayout() {
             screenOptions={{
                 headerShown: false,
                 tabBarShowLabel: false,
-                tabBarStyle: {
-                    backgroundColor: 'white',
-                    borderTopWidth: 1,
-                    borderTopColor: '#f1f5f9',
-                    height: 90,
-                    paddingTop: 10,
-                    paddingBottom: 30,
-                    elevation: 0,
-                    shadowOpacity: 0,
-                },
-                tabBarActiveTintColor: '#10b981',
-                tabBarInactiveTintColor: '#94a3b8',
+                tabBarStyle: styles.tabBar,
+                tabBarActiveTintColor: Colors.primary,
+                tabBarInactiveTintColor: Colors.slate400,
             }}
         >
             <Tabs.Screen
                 name="index"
                 options={{
                     tabBarIcon: ({ color, focused }) => (
-                        <View className="items-center">
+                        <View style={styles.tabItem}>
                             <Bus size={24} color={color} strokeWidth={focused ? 2.5 : 2} />
-                            <Text className={`text-[10px] mt-1 font-bold ${focused ? 'text-emerald-500' : 'text-slate-400'}`}>Routes</Text>
+                            <Text style={[styles.tabLabel, { color: focused ? Colors.primary : Colors.slate400 }]}>Routes</Text>
                         </View>
                     ),
                 }}
@@ -41,14 +33,14 @@ export default function TabLayout() {
                 name="tickets"
                 options={{
                     tabBarIcon: ({ color, focused }) => (
-                        <View className="items-center relative">
+                        <View style={styles.tabItemRelative}>
                             <Ticket size={24} color={color} strokeWidth={focused ? 2.5 : 2} />
                             {activeCount > 0 && (
-                                <View className="absolute -top-2 -right-2 bg-red-500 rounded-full w-4 h-4 items-center justify-center">
-                                    <Text className="text-white text-[8px] font-bold">{activeCount}</Text>
+                                <View style={styles.badge}>
+                                    <Text style={styles.badgeText}>{activeCount}</Text>
                                 </View>
                             )}
-                            <Text className={`text-[10px] mt-1 font-bold ${focused ? 'text-emerald-500' : 'text-slate-400'}`}>Tickets</Text>
+                            <Text style={[styles.tabLabel, { color: focused ? Colors.primary : Colors.slate400 }]}>Tickets</Text>
                         </View>
                     ),
                 }}
@@ -57,9 +49,9 @@ export default function TabLayout() {
                 name="profile"
                 options={{
                     tabBarIcon: ({ color, focused }) => (
-                        <View className="items-center">
+                        <View style={styles.tabItem}>
                             <User size={24} color={color} strokeWidth={focused ? 2.5 : 2} />
-                            <Text className={`text-[10px] mt-1 font-bold ${focused ? 'text-emerald-500' : 'text-slate-400'}`}>Profile</Text>
+                            <Text style={[styles.tabLabel, { color: focused ? Colors.primary : Colors.slate400 }]}>Profile</Text>
                         </View>
                     ),
                 }}
@@ -67,3 +59,45 @@ export default function TabLayout() {
         </Tabs>
     );
 }
+
+const styles = StyleSheet.create({
+    tabBar: {
+        backgroundColor: Colors.white,
+        borderTopWidth: 1,
+        borderTopColor: Colors.slate100,
+        height: 90,
+        paddingTop: 10,
+        paddingBottom: 30,
+        elevation: 0,
+        shadowOpacity: 0,
+    },
+    tabItem: {
+        alignItems: 'center',
+    },
+    tabItemRelative: {
+        alignItems: 'center',
+        position: 'relative',
+    },
+    tabLabel: {
+        fontSize: 10,
+        marginTop: 4,
+        fontWeight: '700',
+    },
+    badge: {
+        position: 'absolute',
+        top: -6,
+        right: -6,
+        backgroundColor: Colors.red500,
+        borderRadius: 8,
+        width: 16,
+        height: 16,
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 1,
+    },
+    badgeText: {
+        color: Colors.white,
+        fontSize: 8,
+        fontWeight: '700',
+    },
+});

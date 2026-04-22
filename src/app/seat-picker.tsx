@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { View, Text, ScrollView, SafeAreaView, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, ScrollView, SafeAreaView, TouchableOpacity, Alert, StyleSheet, Platform, ViewStyle } from 'react-native';
 import { ArrowLeft } from 'lucide-react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useRoutes } from '@/stores/routes';
 import { useBookings } from '@/stores/bookings';
 import Button from '@/components/ui/Button';
 import ConfirmationModal from '@/components/ui/ConfirmationModal';
+import { Colors, BorderRadius, Spacing } from '@/constants/theme';
 
 export default function SeatPickerScreen() {
     const router = useRouter();
@@ -72,48 +73,52 @@ export default function SeatPickerScreen() {
     const seatRows = Array.from({ length: capacity }, (_, i) => ({ id: i + 1 }));
 
     return (
-        <SafeAreaView className="flex-1 bg-slate-50">
-            <View className="flex-row items-center px-6 pt-12 pb-6 bg-white border-b border-slate-100">
-                <TouchableOpacity onPress={() => router.back()} className="w-12 h-12 bg-slate-50 rounded-2xl items-center justify-center mr-4">
-                    <ArrowLeft size={20} color="#475569" />
+        <SafeAreaView style={styles.container as ViewStyle}>
+            <View style={styles.header as ViewStyle}>
+                <TouchableOpacity onPress={() => router.back()} style={styles.backButton as ViewStyle}>
+                    <ArrowLeft size={20} color={Colors.slate600} />
                 </TouchableOpacity>
                 <View>
-                    <Text className="text-xl font-bold text-slate-900">Select Seats</Text>
-                    <Text className="text-slate-400 text-xs font-medium">{route.origin} → {route.destination}</Text>
+                    <Text style={styles.headerTitle}>Select Seats</Text>
+                    <Text style={styles.headerSubtitle}>{route.origin} → {route.destination}</Text>
                 </View>
             </View>
 
-            <ScrollView className="flex-1 px-6 pt-6" showsVerticalScrollIndicator={false}>
+            <ScrollView style={styles.scroll as ViewStyle} contentContainerStyle={styles.scrollContainer as ViewStyle} showsVerticalScrollIndicator={false}>
                 {/* Departure Times */}
-                <Text className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Departure Time</Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row mb-8">
+                <Text style={styles.sectionLabel}>Departure Time</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.departureScroll as ViewStyle}>
                     {route.departures.map((d: string) => (
                         <TouchableOpacity 
                             key={d} 
                             onPress={() => setDep(d)}
-                            className={`mr-3 px-6 py-3 rounded-2xl border-2 ${
-                                dep === d ? 'border-emerald-500 bg-emerald-50' : 'border-slate-100 bg-white'
-                            }`}
+                            style={[
+                                styles.departureOption,
+                                dep === d ? styles.departureOptionActive : null
+                            ] as ViewStyle[]}
                         >
-                            <Text className={`font-mono font-bold ${dep === d ? 'text-emerald-600' : 'text-slate-500'}`}>{d}</Text>
+                            <Text style={[
+                                styles.departureText,
+                                dep === d ? styles.departureTextActive : null
+                            ]}>{d}</Text>
                         </TouchableOpacity>
                     ))}
                 </ScrollView>
 
                 {/* Bus Layout */}
-                <View className="bg-white rounded-[40px] p-8 border border-slate-100 mb-8 shadow-sm">
-                    <View className="flex-row justify-between items-center mb-6">
-                        <Text className="text-slate-900 font-bold text-base">Bus Layout</Text>
-                        <View className="bg-slate-50 px-3 py-1 rounded-lg">
-                            <Text className="text-slate-400 font-mono text-[10px]">{route.bus_plate || route.bus_id}</Text>
+                <View style={styles.layoutCard as ViewStyle}>
+                    <View style={styles.layoutHeader as ViewStyle}>
+                        <Text style={styles.layoutTitle}>Bus Layout</Text>
+                        <View style={styles.busPlateBadge as ViewStyle}>
+                            <Text style={styles.busPlateText}>{route.bus_plate || route.bus_id}</Text>
                         </View>
                     </View>
 
-                    <View className="bg-slate-50 py-3 rounded-2xl items-center mb-8 border border-dashed border-slate-200">
-                        <Text className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">🚌 Driver's Area</Text>
+                    <View style={styles.driverArea as ViewStyle}>
+                        <Text style={styles.driverText}>🚌 Driver's Area</Text>
                     </View>
 
-                    <View className="flex-row flex-wrap justify-between">
+                    <View style={styles.seatsGrid as ViewStyle}>
                         {seatRows.map(s => {
                             const isBooked = bookedSeats.includes(s.id);
                             const isSelected = selectedSeats.includes(s.id);
@@ -122,50 +127,52 @@ export default function SeatPickerScreen() {
                                     key={s.id} 
                                     onPress={() => toggleSeat(s.id, isBooked)}
                                     activeOpacity={0.7}
-                                    className={`w-[22%] aspect-square rounded-xl items-center justify-center mb-3 ${
-                                        isBooked ? 'bg-slate-100' : 
-                                        isSelected ? 'bg-emerald-500' : 'bg-emerald-50'
-                                    }`}
+                                    style={[
+                                        styles.seat,
+                                        isBooked ? styles.seatBooked : 
+                                        isSelected ? styles.seatSelected : styles.seatFree
+                                    ] as ViewStyle[]}
                                 >
-                                    <Text className={`font-bold text-xs ${
-                                        isBooked ? 'text-slate-300' : 
-                                        isSelected ? 'text-white' : 'text-emerald-600'
-                                    }`}>{s.id}</Text>
+                                    <Text style={[
+                                        styles.seatText,
+                                        isBooked ? styles.seatTextBooked : 
+                                        isSelected ? styles.seatTextSelected : styles.seatTextFree
+                                    ]}>{s.id}</Text>
                                 </TouchableOpacity>
                             );
                         })}
                     </View>
 
-                    <View className="flex-row justify-center gap-6 mt-6">
+                    <View style={styles.legend as ViewStyle}>
                         {[
-                            { label: 'Free', color: 'bg-emerald-50', border: 'border-emerald-200' },
-                            { label: 'Selected', color: 'bg-emerald-500', border: 'border-emerald-500' },
-                            { label: 'Booked', color: 'bg-slate-100', border: 'border-slate-200' },
+                            { label: 'Free', color: Colors.primaryLight, border: Colors.primary + '33' },
+                            { label: 'Selected', color: Colors.primary, border: Colors.primary },
+                            { label: 'Booked', color: Colors.slate100, border: Colors.slate200 },
                         ].map(item => (
-                            <View key={item.label} className="flex-row items-center">
-                                <View className={`w-3 h-3 rounded-full mr-2 ${item.color} border ${item.border}`} />
-                                <Text className="text-[10px] font-bold text-slate-400">{item.label}</Text>
+                            <View key={item.label} style={styles.legendItem as ViewStyle}>
+                                <View style={[styles.legendDot, { backgroundColor: item.color, borderColor: item.border }] as ViewStyle[]} />
+                                <Text style={styles.legendText}>{item.label}</Text>
                             </View>
                         ))}
                     </View>
                 </View>
 
                 {selectedSeats.length > 0 && (
-                    <View className="bg-slate-900 rounded-[32px] p-8 mb-12 shadow-2xl shadow-slate-900/40">
-                        <View className="flex-row justify-between mb-4">
-                            <Text className="text-slate-400 font-medium">Selected Seats</Text>
-                            <Text className="text-white font-mono font-bold text-lg">{selectedSeats.sort((a,b)=>a-b).join(', ')}</Text>
+                    <View style={styles.summaryCard as ViewStyle}>
+                        <View style={styles.summaryRow as ViewStyle}>
+                            <Text style={styles.summaryLabel}>Selected Seats</Text>
+                            <Text style={styles.summaryValue}>{selectedSeats.sort((a,b)=>a-b).join(', ')}</Text>
                         </View>
-                        <View className="flex-row justify-between mb-8">
-                            <Text className="text-slate-400 font-medium">Total Fare</Text>
-                            <Text className="text-emerald-400 font-bold text-3xl">₦{route.fare * selectedSeats.length}</Text>
+                        <View style={styles.summaryRow as ViewStyle}>
+                            <Text style={styles.summaryLabel}>Total Fare</Text>
+                            <Text style={styles.fareTotal}>₦{route.fare * selectedSeats.length}</Text>
                         </View>
-                        <Button onPress={handleBook} isLoading={loading} className="h-16 rounded-2xl bg-emerald-500">
+                        <Button onPress={handleBook} isLoading={loading} style={styles.bookButton as ViewStyle}>
                             Confirm Booking
                         </Button>
                     </View>
                 )}
-                <View className="h-10" />
+                <View style={styles.footerSpacer} />
             </ScrollView>
 
             <ConfirmationModal 
@@ -181,3 +188,228 @@ export default function SeatPickerScreen() {
         </SafeAreaView>
     );
 }
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: Colors.slate50,
+    },
+    header: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: Spacing.lg,
+        paddingTop: Spacing.xl + 10,
+        paddingBottom: Spacing.lg,
+        backgroundColor: Colors.white,
+        borderBottomWidth: 1,
+        borderBottomColor: Colors.slate100,
+    },
+    backButton: {
+        width: 48,
+        height: 48,
+        backgroundColor: Colors.slate50,
+        borderRadius: BorderRadius.xl,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginRight: Spacing.md,
+    },
+    headerTitle: {
+        fontSize: 20,
+        fontWeight: '700',
+        color: Colors.slate900,
+    },
+    headerSubtitle: {
+        color: Colors.slate400,
+        fontSize: 12,
+        fontWeight: '500',
+    },
+    scroll: {
+        flex: 1,
+    },
+    scrollContainer: {
+        paddingHorizontal: Spacing.lg,
+        paddingTop: Spacing.lg,
+    },
+    sectionLabel: {
+        fontSize: 10,
+        fontWeight: '700',
+        color: Colors.slate400,
+        textTransform: 'uppercase',
+        letterSpacing: 1.5,
+        marginBottom: Spacing.md,
+    },
+    departureScroll: {
+        flexDirection: 'row',
+        marginBottom: Spacing.xl,
+    },
+    departureOption: {
+        marginRight: Spacing.sm,
+        paddingHorizontal: Spacing.lg,
+        paddingVertical: 12,
+        borderRadius: BorderRadius.xl,
+        borderWidth: 2,
+        borderColor: Colors.slate100,
+        backgroundColor: Colors.white,
+    },
+    departureOptionActive: {
+        borderColor: Colors.primary,
+        backgroundColor: Colors.primaryLight,
+    },
+    departureText: {
+        fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+        fontWeight: '700',
+        color: Colors.slate500,
+    },
+    departureTextActive: {
+        color: Colors.primaryDark,
+    },
+    layoutCard: {
+        backgroundColor: Colors.white,
+        borderRadius: 40,
+        padding: Spacing.xl,
+        borderWidth: 1,
+        borderColor: Colors.slate100,
+        marginBottom: Spacing.xl,
+        shadowColor: Colors.black,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 5,
+        elevation: 2,
+    },
+    layoutHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: Spacing.lg,
+    },
+    layoutTitle: {
+        color: Colors.slate900,
+        fontWeight: '700',
+        fontSize: 16,
+    },
+    busPlateBadge: {
+        backgroundColor: Colors.slate50,
+        paddingHorizontal: 12,
+        paddingVertical: 4,
+        borderRadius: BorderRadius.md,
+    },
+    busPlateText: {
+        color: Colors.slate400,
+        fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+        fontSize: 10,
+    },
+    driverArea: {
+        backgroundColor: Colors.slate50,
+        paddingVertical: 12,
+        borderRadius: BorderRadius.xl,
+        alignItems: 'center',
+        marginBottom: Spacing.xl,
+        borderWidth: 1,
+        borderStyle: 'dashed',
+        borderColor: Colors.slate200,
+    },
+    driverText: {
+        color: Colors.slate400,
+        fontSize: 10,
+        fontWeight: '700',
+        textTransform: 'uppercase',
+        letterSpacing: 1.5,
+    },
+    seatsGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'space-between',
+    },
+    seat: {
+        width: '22%',
+        aspectRatio: 1,
+        borderRadius: BorderRadius.lg,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: Spacing.sm,
+    },
+    seatFree: {
+        backgroundColor: Colors.primaryLight,
+    },
+    seatSelected: {
+        backgroundColor: Colors.primary,
+    },
+    seatBooked: {
+        backgroundColor: Colors.slate100,
+    },
+    seatText: {
+        fontWeight: '700',
+        fontSize: 12,
+    },
+    seatTextFree: {
+        color: Colors.primaryDark,
+    },
+    seatTextSelected: {
+        color: Colors.white,
+    },
+    seatTextBooked: {
+        color: Colors.slate300,
+    },
+    legend: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        gap: Spacing.xl,
+        marginTop: Spacing.lg,
+    },
+    legendItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    legendDot: {
+        width: 12,
+        height: 12,
+        borderRadius: 6,
+        marginRight: 8,
+        borderWidth: 1,
+    },
+    legendText: {
+        fontSize: 10,
+        fontWeight: '700',
+        color: Colors.slate400,
+    },
+    summaryCard: {
+        backgroundColor: Colors.slate900,
+        borderRadius: 32,
+        padding: Spacing.xl,
+        marginBottom: Spacing.xl,
+        shadowColor: Colors.slate900,
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.4,
+        shadowRadius: 20,
+        elevation: 10,
+    },
+    summaryRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: Spacing.md,
+    },
+    summaryLabel: {
+        color: Colors.slate400,
+        fontWeight: '500',
+    },
+    summaryValue: {
+        color: Colors.white,
+        fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+        fontWeight: '700',
+        fontSize: 18,
+    },
+    fareTotal: {
+        color: Colors.primary,
+        fontWeight: '700',
+        fontSize: 30,
+    },
+    bookButton: {
+        height: 64,
+        borderRadius: BorderRadius.xl,
+        backgroundColor: Colors.primary,
+        marginTop: Spacing.lg,
+    },
+    footerSpacer: {
+        height: 40,
+    },
+});

@@ -1,10 +1,10 @@
 import { useState, useMemo, useEffect } from 'react';
-import { View, Text, ScrollView, SafeAreaView, TouchableOpacity, RefreshControl } from 'react-native';
+import { View, Text, ScrollView, SafeAreaView, TouchableOpacity, RefreshControl, StyleSheet, TextInput, Platform, ViewStyle } from 'react-native';
 import { Search, MapPin, Clock, Users, Bus } from 'lucide-react-native';
 import { useAuth } from '../../stores/auth';
 import { useRoutes, type Route } from '../../stores/routes';
-import Input from '../../components/ui/Input';
 import { useRouter } from 'expo-router';
+import { Colors, BorderRadius, Spacing } from '@/constants/theme';
 
 export default function HomeScreen() {
     const { user } = useAuth();
@@ -17,31 +17,31 @@ export default function HomeScreen() {
     }, []);
 
     const filteredRoutes = useMemo(() => routes.filter((r: Route) => 
-        r.from.toLowerCase().includes(search.toLowerCase()) || 
-        r.to.toLowerCase().includes(search.toLowerCase()) ||
+        r.origin.toLowerCase().includes(search.toLowerCase()) || 
+        r.destination.toLowerCase().includes(search.toLowerCase()) ||
         r.id.toLowerCase().includes(search.toLowerCase())
     ), [routes, search]);
 
     return (
-        <SafeAreaView className="flex-1 bg-slate-50">
-            <View className="flex-1">
-                <View className="bg-slate-900 p-6 pt-12 pb-10 rounded-b-[48px] shadow-2xl shadow-slate-900/20">
-                    <View className="flex-row justify-between items-center mb-8">
+        <SafeAreaView style={styles.container as ViewStyle}>
+            <View style={styles.flex1 as ViewStyle}>
+                <View style={styles.header as ViewStyle}>
+                    <View style={styles.headerTop as ViewStyle}>
                         <View>
-                            <Text className="text-slate-400 text-sm font-medium">Welcome back,</Text>
-                            <Text className="text-white text-3xl font-bold">{user?.name.split(" ")[0] || 'User'} 👋</Text>
+                            <Text style={styles.welcomeText}>Welcome back,</Text>
+                            <Text style={styles.userName}>{user?.name.split(" ")[0] || 'User'} 👋</Text>
                         </View>
-                        <View className="w-14 h-14 bg-emerald-500 rounded-[20px] items-center justify-center shadow-lg shadow-emerald-500/30">
-                            <Text className="text-white font-bold text-2xl">{user?.name[0] || 'U'}</Text>
+                        <View style={styles.avatar as ViewStyle}>
+                            <Text style={styles.avatarText}>{user?.name[0] || 'U'}</Text>
                         </View>
                     </View>
                     
-                    <View className="bg-white/10 rounded-2xl px-4 py-1 flex-row items-center border border-white/5">
-                        <Search size={20} color="#94a3b8" />
-                        <Input 
+                    <View style={styles.searchBar as ViewStyle}>
+                        <Search size={20} color={Colors.slate400} />
+                        <TextInput 
                             placeholder="Search routes or destinations..." 
-                            placeholderTextColor="#64748b"
-                            className="text-white h-14 border-0 bg-transparent text-base ml-2"
+                            placeholderTextColor={Colors.slate500}
+                            style={styles.searchInput}
                             value={search}
                             onChangeText={setSearch}
                         />
@@ -49,79 +49,317 @@ export default function HomeScreen() {
                 </View>
 
                 <ScrollView 
-                    className="flex-1 px-6 pt-8" 
+                    style={styles.scrollContent as ViewStyle}
+                    contentContainerStyle={styles.scrollContainer as ViewStyle}
                     showsVerticalScrollIndicator={false}
                     refreshControl={
-                        <RefreshControl refreshing={loading} onRefresh={fetchRoutes} tintColor="#10b981" />
+                        <RefreshControl refreshing={loading} onRefresh={fetchRoutes} tintColor={Colors.primary} />
                     }
                 >
                     {/* Stats Strip */}
-                    <View className="flex-row gap-4 mb-8">
-                        <View className="flex-1 bg-emerald-500 rounded-[28px] p-5 shadow-lg shadow-emerald-500/20">
-                            <Bus size={24} color="white" />
-                            <Text className="text-white text-3xl font-bold mt-2">{routes.length}</Text>
-                            <Text className="text-emerald-100 text-xs font-medium">Active Routes</Text>
+                    <View style={styles.statsStrip as ViewStyle}>
+                        <View style={styles.statCardPrimary as ViewStyle}>
+                            <Bus size={24} color={Colors.white} />
+                            <Text style={styles.statValue}>{routes.length}</Text>
+                            <Text style={styles.statLabelPrimary}>Active Routes</Text>
                         </View>
-                        <View className="flex-1 bg-slate-900 rounded-[28px] p-5 shadow-lg shadow-slate-900/20">
-                            <Clock size={24} color="#10b981" />
-                            <Text className="text-white text-2xl font-bold mt-2 font-mono">08:30</Text>
-                            <Text className="text-slate-400 text-xs font-medium">Next Departure</Text>
+                        <View style={styles.statCardDark as ViewStyle}>
+                            <Clock size={24} color={Colors.primary} />
+                            <Text style={styles.statValue}>08:30</Text>
+                            <Text style={styles.statLabelDark}>Next Departure</Text>
                         </View>
                     </View>
 
-                    <Text className="text-xl font-bold text-slate-900 mb-6">Available Routes</Text>
+                    <Text style={styles.sectionTitle}>Available Routes</Text>
 
                     {filteredRoutes.map((route: Route) => (
                         <TouchableOpacity 
                             key={route.id}
                             onPress={() => router.push({
-                                pathname: '/seat-picker',
+                                pathname: '/seat-picker' as any,
                                 params: { routeId: route.id }
                             })}
-                            className="bg-white rounded-[32px] p-6 mb-6 border border-slate-100 shadow-sm"
+                            style={styles.routeCard as ViewStyle}
                             activeOpacity={0.9}
                         >
-                            <View className="flex-row justify-between items-start mb-6">
-                                <View className="flex-1">
-                                    <View className="flex-row items-center mb-3">
-                                        <View className="w-2.5 h-2.5 rounded-full mr-2" style={{ backgroundColor: route.color }} />
-                                        <Text className="font-mono text-[10px] text-slate-400 uppercase tracking-[2px] font-bold">{route.id}</Text>
+                            <View style={styles.routeCardTop as ViewStyle}>
+                                <View style={styles.routeInfo as ViewStyle}>
+                                    <View style={styles.routeIdContainer as ViewStyle}>
+                                        <View style={[styles.colorDot, { backgroundColor: route.color }] as ViewStyle[]} />
+                                        <Text style={styles.routeId}>#{route.id.slice(0, 8)}</Text>
                                     </View>
-                                    <View className="flex-row items-center mb-2">
-                                        <MapPin size={16} color="#10b981" />
-                                        <Text className="ml-3 text-lg font-bold text-slate-900">{route.from}</Text>
+                                    <View style={styles.locationRow as ViewStyle}>
+                                        <MapPin size={16} color={Colors.primary} />
+                                        <Text style={styles.locationText}>{route.origin}</Text>
                                     </View>
-                                    <View className="flex-row items-center">
-                                        <MapPin size={16} color="#ef4444" />
-                                        <Text className="ml-3 text-lg font-bold text-slate-900">{route.to}</Text>
+                                    <View style={styles.locationRow as ViewStyle}>
+                                        <MapPin size={16} color={Colors.red500} />
+                                        <Text style={styles.locationText}>{route.destination}</Text>
                                     </View>
                                 </View>
-                                <View className="items-end bg-emerald-50 p-3 rounded-2xl">
-                                    <Text className="text-2xl font-bold text-emerald-600">₦{route.fare}</Text>
-                                    <Text className="text-[10px] text-emerald-500 font-bold uppercase mt-1">per seat</Text>
+                                <View style={styles.fareContainer as ViewStyle}>
+                                    <Text style={styles.fareAmount}>₦{route.fare}</Text>
+                                    <Text style={styles.fareLabel}>per seat</Text>
                                 </View>
                             </View>
 
-                            <View className="border-t border-slate-50 pt-5 flex-row justify-between items-center">
-                                <View className="flex-row gap-4">
-                                    <View className="flex-row items-center">
-                                        <Clock size={14} color="#94a3b8" />
-                                        <Text className="ml-2 text-xs font-bold text-slate-500">{route.duration}</Text>
+                            <View style={styles.routeCardBottom as ViewStyle}>
+                                <View style={styles.routeMeta as ViewStyle}>
+                                    <View style={styles.metaItem as ViewStyle}>
+                                        <Clock size={14} color={Colors.slate400} />
+                                        <Text style={styles.metaText}>{route.duration}</Text>
                                     </View>
-                                    <View className="flex-row items-center">
-                                        <Users size={14} color="#94a3b8" />
-                                        <Text className="ml-2 text-xs font-bold text-slate-500">12 free</Text>
+                                    <View style={styles.metaItem as ViewStyle}>
+                                        <Users size={14} color={Colors.slate400} />
+                                        <Text style={styles.metaText}>Available</Text>
                                     </View>
                                 </View>
-                                <View className="bg-slate-900 px-4 py-2 rounded-xl">
-                                    <Text className="text-emerald-400 text-[10px] font-bold font-mono uppercase">Next: {route.departures[0]}</Text>
+                                <View style={styles.nextDepartureBadge as ViewStyle}>
+                                    <Text style={styles.nextDepartureText}>Next: {route.departures[0]}</Text>
                                 </View>
                             </View>
                         </TouchableOpacity>
                     ))}
-                    <View className="h-10" />
+                    <View style={styles.footerSpacer as ViewStyle} />
                 </ScrollView>
             </View>
         </SafeAreaView>
     );
 }
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: Colors.slate50,
+    },
+    flex1: {
+        flex: 1,
+    },
+    header: {
+        backgroundColor: Colors.slate900,
+        padding: Spacing.lg,
+        paddingTop: Spacing.xl + 10,
+        paddingBottom: Spacing.xl,
+        borderBottomLeftRadius: 48,
+        borderBottomRightRadius: 48,
+        shadowColor: Colors.slate900,
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.2,
+        shadowRadius: 20,
+        elevation: 10,
+    },
+    headerTop: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: Spacing.xl,
+    },
+    welcomeText: {
+        color: Colors.slate400,
+        fontSize: 14,
+        fontWeight: '500',
+    },
+    userName: {
+        color: Colors.white,
+        fontSize: 30,
+        fontWeight: '700',
+    },
+    avatar: {
+        width: 56,
+        height: 56,
+        backgroundColor: Colors.primary,
+        borderRadius: 20,
+        alignItems: 'center',
+        justifyContent: 'center',
+        shadowColor: Colors.primary,
+        shadowOffset: { width: 0, height: 5 },
+        shadowOpacity: 0.3,
+        shadowRadius: 10,
+        elevation: 5,
+    },
+    avatarText: {
+        color: Colors.white,
+        fontWeight: '700',
+        fontSize: 24,
+    },
+    searchBar: {
+        backgroundColor: 'rgba(255, 255, 255, 0.1)',
+        borderRadius: BorderRadius.xl,
+        paddingHorizontal: Spacing.md,
+        flexDirection: 'row',
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: 'rgba(255, 255, 255, 0.05)',
+        height: 56,
+    },
+    searchInput: {
+        flex: 1,
+        color: Colors.white,
+        fontSize: 16,
+        marginLeft: Spacing.sm,
+    },
+    scrollContent: {
+        flex: 1,
+    },
+    scrollContainer: {
+        paddingHorizontal: Spacing.lg,
+        paddingTop: Spacing.xl,
+    },
+    statsStrip: {
+        flexDirection: 'row',
+        gap: Spacing.md,
+        marginBottom: Spacing.xl,
+    },
+    statCardPrimary: {
+        flex: 1,
+        backgroundColor: Colors.primary,
+        borderRadius: 28,
+        padding: Spacing.lg,
+        shadowColor: Colors.primary,
+        shadowOffset: { width: 0, height: 5 },
+        shadowOpacity: 0.2,
+        shadowRadius: 10,
+        elevation: 5,
+    },
+    statCardDark: {
+        flex: 1,
+        backgroundColor: Colors.slate900,
+        borderRadius: 28,
+        padding: Spacing.lg,
+        shadowColor: Colors.slate900,
+        shadowOffset: { width: 0, height: 5 },
+        shadowOpacity: 0.2,
+        shadowRadius: 10,
+        elevation: 5,
+    },
+    statValue: {
+        color: Colors.white,
+        fontSize: 28,
+        fontWeight: '700',
+        marginTop: Spacing.sm,
+    },
+    statLabelPrimary: {
+        color: Colors.primaryLight,
+        fontSize: 12,
+        fontWeight: '500',
+    },
+    statLabelDark: {
+        color: Colors.slate400,
+        fontSize: 12,
+        fontWeight: '500',
+    },
+    sectionTitle: {
+        fontSize: 20,
+        fontWeight: '700',
+        color: Colors.slate900,
+        marginBottom: Spacing.lg,
+    },
+    routeCard: {
+        backgroundColor: Colors.white,
+        borderRadius: 32,
+        padding: Spacing.lg,
+        marginBottom: Spacing.lg,
+        borderWidth: 1,
+        borderColor: Colors.slate100,
+        shadowColor: Colors.black,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 5,
+        elevation: 2,
+    },
+    routeCardTop: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        marginBottom: Spacing.lg,
+    },
+    routeInfo: {
+        flex: 1,
+    },
+    routeIdContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: Spacing.sm,
+    },
+    colorDot: {
+        width: 10,
+        height: 10,
+        borderRadius: 5,
+        marginRight: Spacing.sm,
+    },
+    routeId: {
+        fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+        fontSize: 10,
+        color: Colors.slate400,
+        textTransform: 'uppercase',
+        letterSpacing: 2,
+        fontWeight: '700',
+    },
+    locationRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 8,
+    },
+    locationText: {
+        marginLeft: Spacing.sm,
+        fontSize: 18,
+        fontWeight: '700',
+        color: Colors.slate900,
+    },
+    fareContainer: {
+        alignItems: 'flex-end',
+        backgroundColor: Colors.primaryLight,
+        padding: Spacing.md,
+        borderRadius: BorderRadius.xl,
+    },
+    fareAmount: {
+        fontSize: 24,
+        fontWeight: '700',
+        color: Colors.primaryDark,
+    },
+    fareLabel: {
+        fontSize: 10,
+        color: Colors.primary,
+        fontWeight: '700',
+        textTransform: 'uppercase',
+        marginTop: 4,
+    },
+    routeCardBottom: {
+        borderTopWidth: 1,
+        borderTopColor: Colors.slate50,
+        paddingTop: Spacing.lg,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+    routeMeta: {
+        flexDirection: 'row',
+        gap: Spacing.lg,
+    },
+    metaItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    metaText: {
+        marginLeft: Spacing.sm,
+        fontSize: 12,
+        fontWeight: '700',
+        color: Colors.slate500,
+    },
+    nextDepartureBadge: {
+        backgroundColor: Colors.slate900,
+        paddingHorizontal: Spacing.md,
+        paddingVertical: 8,
+        borderRadius: BorderRadius.lg,
+    },
+    nextDepartureText: {
+        color: Colors.primary,
+        fontSize: 10,
+        fontWeight: '700',
+        fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+        textTransform: 'uppercase',
+    },
+    footerSpacer: {
+        height: 20,
+    },
+});

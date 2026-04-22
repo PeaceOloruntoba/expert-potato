@@ -1,6 +1,7 @@
-import { View, Text, Modal, TouchableOpacity } from 'react-native';
+import { View, Text, Modal, TouchableOpacity, StyleSheet, Dimensions, ViewStyle } from 'react-native';
 import { AlertCircle, X } from 'lucide-react-native';
 import Button from './Button';
+import { Colors, BorderRadius, Spacing } from '@/constants/theme';
 
 interface ConfirmationModalProps {
     isOpen: boolean;
@@ -12,6 +13,8 @@ interface ConfirmationModalProps {
     isLoading?: boolean;
     variant?: 'danger' | 'warning' | 'proceed';
 }
+
+const { width } = Dimensions.get('window');
 
 export default function ConfirmationModal({
     isOpen, onClose, onConfirm, title, description, confirmText = "Confirm", isLoading, variant = 'danger'
@@ -25,32 +28,33 @@ export default function ConfirmationModal({
             animationType="fade"
             onRequestClose={onClose}
         >
-            <View className="flex-1 bg-black/40 justify-center items-center p-6">
-                <View className="bg-white rounded-[32px] p-6 w-full max-w-sm shadow-2xl relative">
+            <View style={styles.overlay as ViewStyle}>
+                <View style={styles.modalContainer as ViewStyle}>
                     <TouchableOpacity 
                         onPress={onClose} 
-                        className="absolute right-4 top-4 z-10 p-2"
+                        style={styles.closeButton as ViewStyle}
                     >
-                        <X size={20} color="#94a3b8" />
+                        <X size={20} color={Colors.slate400} />
                     </TouchableOpacity>
 
-                    <View className="items-center text-center mt-4">
-                        <View className={`w-16 h-16 rounded-full items-center justify-center mb-4 ${
-                            variant === 'danger' ? 'bg-red-50' : 'bg-emerald-50'
-                        }`}>
-                            <AlertCircle size={32} color={variant === 'danger' ? '#ef4444' : '#10b981'} />
+                    <View style={styles.content as ViewStyle}>
+                        <View style={[
+                            styles.iconCircle, 
+                            { backgroundColor: variant === 'danger' ? Colors.red50 : Colors.primaryLight }
+                        ] as ViewStyle[]}>
+                            <AlertCircle size={32} color={variant === 'danger' ? Colors.red500 : Colors.primary} />
                         </View>
                         
-                        <Text className="text-xl font-bold text-slate-900 mb-2 text-center">{title}</Text>
-                        <Text className="text-slate-500 text-center text-sm leading-relaxed mb-8 px-2">
+                        <Text style={styles.title}>{title}</Text>
+                        <Text style={styles.description}>
                             {description}
                         </Text>
 
-                        <View className="flex-row gap-3 w-full">
+                        <View style={styles.footer as ViewStyle}>
                             <Button 
                                 variant="secondary" 
                                 onPress={onClose} 
-                                className="flex-1"
+                                style={styles.button as ViewStyle}
                                 disabled={isLoading}
                             >
                                 Cancel
@@ -59,7 +63,7 @@ export default function ConfirmationModal({
                                 variant={variant === 'danger' ? 'danger' : 'primary'} 
                                 onPress={onConfirm} 
                                 isLoading={isLoading} 
-                                className="flex-1"
+                                style={styles.button as ViewStyle}
                             >
                                 {confirmText}
                             </Button>
@@ -70,3 +74,68 @@ export default function ConfirmationModal({
         </Modal>
     );
 }
+
+const styles = StyleSheet.create({
+    overlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.4)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: Spacing.lg,
+    },
+    modalContainer: {
+        backgroundColor: Colors.white,
+        borderRadius: BorderRadius.xxl,
+        padding: Spacing.lg,
+        width: '100%',
+        maxWidth: 400,
+        shadowColor: Colors.black,
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.1,
+        shadowRadius: 20,
+        elevation: 10,
+        position: 'relative',
+    },
+    closeButton: {
+        position: 'absolute',
+        right: Spacing.md,
+        top: Spacing.md,
+        zIndex: 10,
+        padding: Spacing.sm,
+    },
+    content: {
+        alignItems: 'center',
+        marginTop: Spacing.md,
+    },
+    iconCircle: {
+        width: 64,
+        height: 64,
+        borderRadius: 32,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: Spacing.md,
+    },
+    title: {
+        fontSize: 20,
+        fontWeight: '700',
+        color: Colors.slate900,
+        marginBottom: Spacing.sm,
+        textAlign: 'center',
+    },
+    description: {
+        fontSize: 14,
+        color: Colors.slate500,
+        textAlign: 'center',
+        lineHeight: 20,
+        marginBottom: Spacing.xl,
+        paddingHorizontal: Spacing.sm,
+    },
+    footer: {
+        flexDirection: 'row',
+        gap: Spacing.md,
+        width: '100%',
+    },
+    button: {
+        flex: 1,
+    },
+});

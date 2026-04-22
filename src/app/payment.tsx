@@ -1,9 +1,10 @@
 import React from 'react';
-import { SafeAreaView, TouchableOpacity, View, Text, ActivityIndicator, Alert } from 'react-native';
+import { SafeAreaView, TouchableOpacity, View, Text, ActivityIndicator, Alert, StyleSheet } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
 import { useBookings } from '@/stores/bookings';
+import { Colors, BorderRadius, Spacing } from '@/constants/theme';
 
 export default function PaymentScreen() {
     const router = useRouter();
@@ -14,13 +15,7 @@ export default function PaymentScreen() {
     const handleNavigationStateChange = async (navState: any) => {
         const { url } = navState;
         
-        // Paystack callback URL or success page
-        if (url.includes('checkout.paystack.com') && url.includes('status=success')) {
-            // This is just one way, better to check for the reference in the URL or wait for the user to close
-        }
-
         // Check if the URL matches Paystack's default close/callback pattern
-        // Or if it matches our own callback URL if we provided one
         if (url.includes('callback') || url.includes('finish') || url.includes('success')) {
             try {
                 const result = await verifyPayment(reference as string);
@@ -34,37 +29,87 @@ export default function PaymentScreen() {
                 }
             } catch (err) {
                 console.error("Verification error:", err);
-                // Even if verification fails here, the user might have paid. 
-                // We should probably redirect to tickets anyway and let them refresh.
                 router.replace('/(tabs)/tickets' as any);
             }
         }
     };
 
     return (
-        <SafeAreaView className="flex-1 bg-white">
-            <View className="flex-row items-center px-6 pt-12 pb-4 bg-white border-b border-slate-100">
-                <TouchableOpacity onPress={() => router.back()} className="w-10 h-10 bg-slate-50 rounded-xl items-center justify-center mr-4">
-                    <ArrowLeft size={20} color="#475569" />
+        <SafeAreaView style={styles.container}>
+            <View style={styles.header}>
+                <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+                    <ArrowLeft size={20} color={Colors.slate600} />
                 </TouchableOpacity>
-                <Text className="text-lg font-bold text-slate-900">Secure Payment</Text>
+                <Text style={styles.headerTitle}>Secure Payment</Text>
             </View>
 
-            <View className="flex-1">
+            <View style={styles.webViewContainer}>
                 <WebView
                     source={{ uri: authUrl as string }}
                     onNavigationStateChange={handleNavigationStateChange}
                     onLoadStart={() => setLoading(true)}
                     onLoadEnd={() => setLoading(false)}
-                    style={{ flex: 1 }}
+                    style={styles.webView}
                 />
                 {loading && (
-                    <View className="absolute inset-0 items-center justify-center bg-white/80">
-                        <ActivityIndicator size="large" color="#10b981" />
-                        <Text className="mt-4 text-slate-500 font-medium">Loading Secure Checkout...</Text>
+                    <View style={styles.loadingOverlay}>
+                        <ActivityIndicator size="large" color={Colors.primary} />
+                        <Text style={styles.loadingText}>Loading Secure Checkout...</Text>
                     </View>
                 )}
             </View>
         </SafeAreaView>
     );
 }
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: Colors.white,
+    },
+    header: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: Spacing.lg,
+        paddingTop: Spacing.xl + 10,
+        paddingBottom: Spacing.md,
+        backgroundColor: Colors.white,
+        borderBottomWidth: 1,
+        borderBottomColor: Colors.slate100,
+    },
+    backButton: {
+        width: 40,
+        height: 40,
+        backgroundColor: Colors.slate50,
+        borderRadius: BorderRadius.lg,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginRight: Spacing.md,
+    },
+    headerTitle: {
+        fontSize: 18,
+        fontWeight: '700',
+        color: Colors.slate900,
+    },
+    webViewContainer: {
+        flex: 1,
+    },
+    webView: {
+        flex: 1,
+    },
+    loadingOverlay: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    },
+    loadingText: {
+        marginTop: Spacing.md,
+        color: Colors.slate500,
+        fontWeight: '500',
+    },
+});

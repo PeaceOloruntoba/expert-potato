@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { View, Text, SafeAreaView, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
-import { Bus, Mail, Lock, User as UserIcon, Shield, ChevronRight, ArrowLeft, Hash } from 'lucide-react-native';
+import { View, Text, SafeAreaView, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, StyleSheet, ViewStyle } from 'react-native';
+import { Bus, Mail, Lock, User as UserIcon, ArrowLeft, Hash } from 'lucide-react-native';
 import { useAuth } from '../../stores/auth';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import { Link, useRouter } from 'expo-router';
+import { Colors, BorderRadius, Spacing } from '@/constants/theme';
 
 export default function SignupScreen() {
     const { loading } = useAuth();
@@ -14,36 +15,36 @@ export default function SignupScreen() {
     const handleSignup = async () => {
         // Mock signup
         console.log('Signup payload:', form);
-        router.push('/otp-verification');
+        router.push('/otp-verification' as any);
     };
 
     return (
-        <SafeAreaView className="flex-1 bg-slate-900">
+        <SafeAreaView style={styles.container as ViewStyle}>
             <KeyboardAvoidingView 
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                className="flex-1"
+                style={styles.flex1 as ViewStyle}
             >
-                <View className="px-8 pt-12 pb-6">
-                    <TouchableOpacity onPress={() => router.back()} className="w-12 h-12 bg-white/5 rounded-2xl items-center justify-center mr-4">
-                        <ArrowLeft size={24} color="white" />
+                <View style={styles.header as ViewStyle}>
+                    <TouchableOpacity onPress={() => router.back()} style={styles.backButton as ViewStyle}>
+                        <ArrowLeft size={24} color={Colors.white} />
                     </TouchableOpacity>
                 </View>
 
-                <ScrollView contentContainerStyle={{ flexGrow: 1 }} className="px-8 pt-4 pb-10">
-                    <View className="items-center mb-12">
-                        <View className="w-20 h-20 bg-emerald-500 rounded-[28px] items-center justify-center mb-5 shadow-2xl shadow-emerald-500/50">
-                            <Bus size={40} color="white" />
+                <ScrollView contentContainerStyle={styles.scrollContainer as ViewStyle} style={styles.flex1 as ViewStyle} showsVerticalScrollIndicator={false}>
+                    <View style={styles.hero as ViewStyle}>
+                        <View style={styles.logoContainer as ViewStyle}>
+                            <Bus size={40} color={Colors.white} />
                         </View>
-                        <Text className="text-3xl font-bold text-white tracking-[2px]">Create Account</Text>
-                        <Text className="text-emerald-400 mt-2 text-sm font-medium text-center">Join UNIPH Campus Transit</Text>
+                        <Text style={styles.title}>Create Account</Text>
+                        <Text style={styles.subtitle}>Join UNIPH Campus Transit</Text>
                     </View>
 
-                    <View className="space-y-4">
+                    <View style={styles.form as ViewStyle}>
                         <Input 
                             label="Full Name"
                             placeholder="e.g. Chidi Nwosu"
-                            placeholderTextColor="#64748b"
-                            leftIcon={<UserIcon size={20} color="#94a3b8" />}
+                            placeholderTextColor={Colors.slate500}
+                            leftIcon={<UserIcon size={20} color={Colors.slate400} />}
                             value={form.name}
                             onChangeText={(text) => setForm({ ...form, name: text })}
                         />
@@ -51,8 +52,8 @@ export default function SignupScreen() {
                         <Input 
                             label="Email Address"
                             placeholder="e.g. chidi@uniph.edu.ng"
-                            placeholderTextColor="#64748b"
-                            leftIcon={<Mail size={20} color="#94a3b8" />}
+                            placeholderTextColor={Colors.slate500}
+                            leftIcon={<Mail size={20} color={Colors.slate400} />}
                             keyboardType="email-address"
                             autoCapitalize="none"
                             value={form.email}
@@ -62,8 +63,8 @@ export default function SignupScreen() {
                         <Input 
                             label="Matric Number"
                             placeholder="e.g. CSC/2021/042"
-                            placeholderTextColor="#64748b"
-                            leftIcon={<Hash size={20} color="#94a3b8" />}
+                            placeholderTextColor={Colors.slate500}
+                            leftIcon={<Hash size={20} color={Colors.slate400} />}
                             autoCapitalize="characters"
                             value={form.matric}
                             onChangeText={(text) => setForm({ ...form, matric: text })}
@@ -72,9 +73,9 @@ export default function SignupScreen() {
                         <Input 
                             label="Password"
                             placeholder="Create a password"
-                            placeholderTextColor="#64748b"
+                            placeholderTextColor={Colors.slate500}
                             secureTextEntry
-                            leftIcon={<Lock size={20} color="#94a3b8" />}
+                            leftIcon={<Lock size={20} color={Colors.slate400} />}
                             value={form.password}
                             onChangeText={(text) => setForm({ ...form, password: text })}
                         />
@@ -82,24 +83,118 @@ export default function SignupScreen() {
                         <Button 
                             onPress={handleSignup}
                             isLoading={loading}
-                            className="h-16 rounded-2xl mt-8 shadow-lg shadow-emerald-500/20"
+                            style={styles.signupButton as ViewStyle}
                         >
                             Create Account
                         </Button>
 
-                        <View className="flex-row justify-center items-center mt-10">
-                            <Text className="text-slate-400 text-sm">Already have an account? </Text>
+                        <View style={styles.loginRow as ViewStyle}>
+                            <Text style={styles.loginLabel}>Already have an account? </Text>
                             <Link href="/login" asChild>
                                 <TouchableOpacity>
-                                    <Text className="text-emerald-400 font-bold text-sm">Sign In</Text>
+                                    <Text style={styles.loginText}>Sign In</Text>
                                 </TouchableOpacity>
                             </Link>
                         </View>
                     </View>
 
-                    <Text className="text-center text-slate-600 text-xs mt-auto pt-10">© 2026 UNIPH Transport Services</Text>
+                    <Text style={styles.copyright}>© 2026 UNIPH Transport Services</Text>
                 </ScrollView>
             </KeyboardAvoidingView>
         </SafeAreaView>
     );
 }
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: Colors.slate900,
+    },
+    flex1: {
+        flex: 1,
+    },
+    header: {
+        paddingHorizontal: Spacing.xl,
+        paddingTop: Spacing.xl,
+        paddingBottom: Spacing.md,
+    },
+    backButton: {
+        width: 48,
+        height: 48,
+        backgroundColor: 'rgba(255, 255, 255, 0.05)',
+        borderRadius: BorderRadius.xl,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    scrollContainer: {
+        paddingHorizontal: Spacing.xl,
+        paddingTop: Spacing.md,
+        paddingBottom: Spacing.xl,
+        flexGrow: 1,
+    },
+    hero: {
+        alignItems: 'center',
+        marginBottom: 48,
+    },
+    logoContainer: {
+        width: 80,
+        height: 80,
+        backgroundColor: Colors.primary,
+        borderRadius: 28,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: Spacing.lg,
+        shadowColor: Colors.primary,
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.5,
+        shadowRadius: 20,
+        elevation: 15,
+    },
+    title: {
+        fontSize: 30,
+        fontWeight: '700',
+        color: Colors.white,
+        letterSpacing: 2,
+    },
+    subtitle: {
+        color: Colors.primary,
+        marginTop: 8,
+        fontSize: 14,
+        fontWeight: '500',
+    },
+    form: {
+        flex: 1,
+    },
+    signupButton: {
+        height: 64,
+        borderRadius: BorderRadius.xl,
+        backgroundColor: Colors.primary,
+        marginTop: Spacing.xl,
+        shadowColor: Colors.primary,
+        shadowOffset: { width: 0, height: 5 },
+        shadowOpacity: 0.2,
+        shadowRadius: 10,
+        elevation: 5,
+    },
+    loginRow: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginTop: 40,
+    },
+    loginLabel: {
+        color: Colors.slate400,
+        fontSize: 14,
+    },
+    loginText: {
+        color: Colors.primary,
+        fontWeight: '700',
+        fontSize: 14,
+    },
+    copyright: {
+        textAlign: 'center',
+        color: Colors.slate700,
+        fontSize: 12,
+        marginTop: 40,
+    },
+});

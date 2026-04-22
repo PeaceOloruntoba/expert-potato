@@ -1,16 +1,16 @@
 import { useState } from 'react';
-import { View, Text, ScrollView, SafeAreaView, TouchableOpacity } from 'react-native';
-import { ArrowLeft, Bus, Ticket as TicketIcon, Calendar, Clock, Users, Trash2 } from 'lucide-react-native';
+import { View, Text, ScrollView, SafeAreaView, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import { ArrowLeft, Bus, Ticket as TicketIcon, Trash2 } from 'lucide-react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useBookings } from '@/stores/bookings';
-import { useRoutes } from '@/stores/routes';
 import Button from '@/components/ui/Button';
 import ConfirmationModal from '@/components/ui/ConfirmationModal';
+import { Colors, BorderRadius, Spacing } from '@/constants/theme';
 
 const statusCfg = {
-    confirmed: { bg: 'bg-emerald-50', color: '#10b981', label: 'Confirmed' },
-    used:      { bg: 'bg-blue-50', color: '#3b82f6', label: 'Used' },
-    cancelled: { bg: 'bg-red-50', color: '#ef4444', label: 'Cancelled' },
+    confirmed: { bg: Colors.primaryLight, color: Colors.primary, label: 'Confirmed' },
+    used:      { bg: Colors.blue50, color: Colors.blue600, label: 'Used' },
+    cancelled: { bg: Colors.red50, color: Colors.red600, label: 'Cancelled' },
 };
 
 export default function TicketDetailScreen() {
@@ -31,66 +31,69 @@ export default function TicketDetailScreen() {
     };
 
     return (
-        <SafeAreaView className="flex-1 bg-slate-50">
-            <View className="flex-row items-center px-6 pt-12 pb-6 bg-white border-b border-slate-100">
-                <TouchableOpacity onPress={() => router.back()} className="w-12 h-12 bg-slate-50 rounded-2xl items-center justify-center mr-4">
-                    <ArrowLeft size={20} color="#475569" />
+        <SafeAreaView style={styles.container}>
+            <View style={styles.header}>
+                <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+                    <ArrowLeft size={20} color={Colors.slate600} />
                 </TouchableOpacity>
-                <Text className="text-xl font-bold text-slate-900">Ticket Details</Text>
+                <Text style={styles.headerTitle}>Ticket Details</Text>
             </View>
 
-            <ScrollView className="flex-1 px-6 pt-6" showsVerticalScrollIndicator={false}>
-                <View className="bg-white rounded-[40px] p-8 border border-slate-100 mb-8 shadow-sm">
-                    <View className="bg-slate-900 rounded-[32px] p-6 items-center mb-8">
-                        <Bus size={32} color="#10b981" className="mb-4" />
-                        <Text className="text-white font-mono font-bold text-lg tracking-widest text-center">{ticket.id}</Text>
-                        <Text className="text-slate-400 text-sm mt-2 font-bold uppercase tracking-widest">
+            <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
+                <View style={styles.ticketCard}>
+                    <View style={styles.ticketHero}>
+                        <Bus size={32} color={Colors.primary} style={styles.heroIcon} />
+                        <Text style={styles.heroTicketId}>{ticket.id.toUpperCase()}</Text>
+                        <Text style={styles.heroRouteText}>
                             {ticket.origin} → {ticket.destination}
                         </Text>
                     </View>
 
                     {/* Simulated QR Code */}
-                    <View className="items-center mb-8">
-                        <View className={`p-4 bg-white rounded-[32px] border-[3px]`} style={{ borderColor: ticket.payment_status === 'paid' ? '#10b981' : '#f59e0b' }}>
-                            <View className="w-48 h-48 bg-slate-900 rounded-2xl items-center justify-center">
-                                <TicketIcon size={80} color="white" strokeWidth={1} />
-                                <Text className="text-emerald-500 text-[8px] font-mono mt-4 uppercase tracking-[4px]">
+                    <View style={styles.qrContainer}>
+                        <View style={[
+                            styles.qrBorder,
+                            { borderColor: ticket.payment_status === 'paid' ? Colors.primary : Colors.orange600 }
+                        ]}>
+                            <View style={styles.qrInner}>
+                                <TicketIcon size={80} color={Colors.white} strokeWidth={1} />
+                                <Text style={styles.qrLabel}>
                                     {ticket.payment_status === 'paid' ? 'VALID TICKET' : 'PAYMENT PENDING'}
                                 </Text>
                             </View>
                         </View>
                     </View>
 
-                    <View className="flex-row flex-wrap gap-3">
+                    <View style={styles.detailsGrid}>
                         {[
                             { label: 'Date', value: new Date(ticket.booking_date).toLocaleDateString() },
                             { label: 'Departure', value: ticket.departure_time },
                             { label: 'Seats', value: ticket.seats.join(', ') },
                             { label: 'Total Fare', value: `₦${ticket.total_fare}` },
                             { label: 'Status', value: ticket.status.toUpperCase(), color: sc.color },
-                            { label: 'Payment', value: ticket.payment_status.toUpperCase(), color: ticket.payment_status === 'paid' ? '#10b981' : '#f59e0b' },
+                            { label: 'Payment', value: ticket.payment_status.toUpperCase(), color: ticket.payment_status === 'paid' ? Colors.primary : Colors.orange600 },
                         ].map(item => (
-                            <View key={item.label} className="w-[47%] bg-slate-50 p-4 rounded-[24px]">
-                                <Text className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">{item.label}</Text>
-                                <Text className="text-slate-900 font-bold text-sm" style={item.color ? { color: item.color } : {}}>{item.value}</Text>
+                            <View key={item.label} style={styles.detailItem}>
+                                <Text style={styles.detailLabel}>{item.label}</Text>
+                                <Text style={[styles.detailValue, item.color ? { color: item.color } : null]}>{item.value}</Text>
                             </View>
                         ))}
                     </View>
 
-                    <Text className="text-center text-slate-400 text-[10px] mt-8 font-medium">Present this QR to the driver when boarding</Text>
+                    <Text style={styles.helperText}>Present this QR to the driver when boarding</Text>
                 </View>
 
                 {ticket.status === 'confirmed' && (
                     <Button
                         variant="outline" 
                         onPress={() => setIsCancelConfirmOpen(true)} 
-                        icon={<Trash2 size={18} color="#ef4444" />}
-                        className="border-red-100 h-16 rounded-2xl mb-12"
+                        icon={<Trash2 size={18} color={Colors.red500} />}
+                        style={styles.cancelButton}
                     >
-                        <Text className="text-red-500 font-bold">Cancel Booking</Text>
+                        <Text style={styles.cancelButtonText}>Cancel Booking</Text>
                     </Button>
                 )}
-                <View className="h-10" />
+                <View style={styles.footerSpacer} />
             </ScrollView>
 
             <ConfirmationModal 
@@ -106,3 +109,150 @@ export default function TicketDetailScreen() {
         </SafeAreaView>
     );
 }
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: Colors.slate50,
+    },
+    header: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: Spacing.lg,
+        paddingTop: Spacing.xl + 10,
+        paddingBottom: Spacing.lg,
+        backgroundColor: Colors.white,
+        borderBottomWidth: 1,
+        borderBottomColor: Colors.slate100,
+    },
+    backButton: {
+        width: 48,
+        height: 48,
+        backgroundColor: Colors.slate50,
+        borderRadius: BorderRadius.xl,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginRight: Spacing.md,
+    },
+    headerTitle: {
+        fontSize: 20,
+        fontWeight: '700',
+        color: Colors.slate900,
+    },
+    scroll: {
+        flex: 1,
+    },
+    scrollContainer: {
+        paddingHorizontal: Spacing.lg,
+        paddingTop: Spacing.lg,
+    },
+    ticketCard: {
+        backgroundColor: Colors.white,
+        borderRadius: 40,
+        padding: Spacing.xl,
+        borderWidth: 1,
+        borderColor: Colors.slate100,
+        marginBottom: Spacing.xl,
+        shadowColor: Colors.black,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 5,
+        elevation: 2,
+    },
+    ticketHero: {
+        backgroundColor: Colors.slate900,
+        borderRadius: 32,
+        padding: Spacing.lg,
+        alignItems: 'center',
+        marginBottom: Spacing.xl,
+    },
+    heroIcon: {
+        marginBottom: Spacing.md,
+    },
+    heroTicketId: {
+        color: Colors.white,
+        fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+        fontWeight: '700',
+        fontSize: 18,
+        letterSpacing: 2,
+        textAlign: 'center',
+    },
+    heroRouteText: {
+        color: Colors.slate400,
+        fontSize: 12,
+        marginTop: Spacing.sm,
+        fontWeight: '700',
+        textTransform: 'uppercase',
+        letterSpacing: 1,
+    },
+    qrContainer: {
+        alignItems: 'center',
+        marginBottom: Spacing.xl,
+    },
+    qrBorder: {
+        padding: Spacing.sm,
+        backgroundColor: Colors.white,
+        borderRadius: 32,
+        borderWidth: 3,
+    },
+    qrInner: {
+        width: 192,
+        height: 192,
+        backgroundColor: Colors.slate900,
+        borderRadius: BorderRadius.xl,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    qrLabel: {
+        color: Colors.primary,
+        fontSize: 8,
+        fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+        marginTop: Spacing.md,
+        textTransform: 'uppercase',
+        letterSpacing: 4,
+    },
+    detailsGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: Spacing.md,
+    },
+    detailItem: {
+        width: '47%',
+        backgroundColor: Colors.slate50,
+        padding: Spacing.md,
+        borderRadius: 24,
+    },
+    detailLabel: {
+        color: Colors.slate400,
+        fontSize: 10,
+        fontWeight: '700',
+        textTransform: 'uppercase',
+        letterSpacing: 1.5,
+        marginBottom: 4,
+    },
+    detailValue: {
+        color: Colors.slate900,
+        fontWeight: '700',
+        fontSize: 14,
+    },
+    helperText: {
+        textAlign: 'center',
+        color: Colors.slate400,
+        fontSize: 10,
+        marginTop: Spacing.xl,
+        fontWeight: '500',
+    },
+    cancelButton: {
+        borderColor: Colors.red100,
+        height: 64,
+        borderRadius: BorderRadius.xl,
+        marginBottom: 48,
+    },
+    cancelButtonText: {
+        color: Colors.red500,
+        fontWeight: '700',
+    },
+    footerSpacer: {
+        height: 40,
+    },
+});

@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { View, Text, SafeAreaView, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
-import { Bus, Mail, Lock, User as UserIcon, Shield, ChevronRight } from 'lucide-react-native';
+import { View, Text, SafeAreaView, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, StyleSheet, ViewStyle } from 'react-native';
+import { Bus, Mail, Lock, User as UserIcon, Shield } from 'lucide-react-native';
 import { useAuth } from '../../stores/auth';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import { Link, useRouter } from 'expo-router';
+import { Colors, BorderRadius, Spacing } from '@/constants/theme';
 
 export default function LoginScreen() {
     const { login, loading } = useAuth();
@@ -13,32 +14,31 @@ export default function LoginScreen() {
 
     const handleLogin = async (role: 'student' | 'admin') => {
         await login(role);
-        // After login, the root _layout.tsx will handle the redirect to /(tabs)
     };
 
     return (
-        <SafeAreaView className="flex-1 bg-slate-900">
+        <SafeAreaView style={styles.container as ViewStyle}>
             <KeyboardAvoidingView 
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                className="flex-1"
+                style={styles.flex1 as ViewStyle}
             >
-                <ScrollView contentContainerStyle={{ flexGrow: 1 }} className="px-8 pt-16 pb-10">
-                    <View className="items-center mb-16">
-                        <View className="w-24 h-24 bg-emerald-500 rounded-[32px] items-center justify-center mb-6 shadow-2xl shadow-emerald-500/50">
-                            <Bus size={48} color="white" />
+                <ScrollView contentContainerStyle={styles.scrollContainer as ViewStyle} style={styles.flex1 as ViewStyle} showsVerticalScrollIndicator={false}>
+                    <View style={styles.hero as ViewStyle}>
+                        <View style={styles.logoContainer as ViewStyle}>
+                            <Bus size={48} color={Colors.white} />
                         </View>
-                        <Text className="text-4xl font-bold text-white tracking-[4px]">CAMPUSTRANSIT</Text>
-                        <Text className="text-emerald-400 mt-2 text-base font-medium">University of Port Harcourt</Text>
+                        <Text style={styles.appName}>CAMPUSTRANSIT</Text>
+                        <Text style={styles.uniName}>University of Port Harcourt</Text>
                     </View>
 
-                    <View className="space-y-4">
-                        <Text className="text-2xl font-bold text-white mb-6">Welcome Back</Text>
+                    <View style={styles.form as ViewStyle}>
+                        <Text style={styles.welcomeTitle}>Welcome Back</Text>
                         
                         <Input 
                             label="Email Address"
                             placeholder="e.g. chidi@uniph.edu.ng"
-                            placeholderTextColor="#64748b"
-                            leftIcon={<Mail size={20} color="#94a3b8" />}
+                            placeholderTextColor={Colors.slate500}
+                            leftIcon={<Mail size={20} color={Colors.slate400} />}
                             keyboardType="email-address"
                             autoCapitalize="none"
                             value={form.email}
@@ -48,25 +48,25 @@ export default function LoginScreen() {
                         <Input 
                             label="Password"
                             placeholder="Enter your password"
-                            placeholderTextColor="#64748b"
+                            placeholderTextColor={Colors.slate500}
                             secureTextEntry
-                            leftIcon={<Lock size={20} color="#94a3b8" />}
+                            leftIcon={<Lock size={20} color={Colors.slate400} />}
                             value={form.password}
                             onChangeText={(text) => setForm({ ...form, password: text })}
                         />
 
                         <TouchableOpacity 
-                            onPress={() => router.push('/forgot-password')}
-                            className="items-end mb-6"
+                            onPress={() => router.push('/forgot-password' as any)}
+                            style={styles.forgotPassword as ViewStyle}
                         >
-                            <Text className="text-emerald-400 font-bold text-sm">Forgot Password?</Text>
+                            <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
                         </TouchableOpacity>
 
                         <Button 
                             onPress={() => handleLogin('student')}
                             isLoading={loading}
-                            icon={<UserIcon size={20} color="white" />}
-                            className="h-16 rounded-2xl shadow-lg shadow-emerald-500/20"
+                            icon={<UserIcon size={20} color={Colors.white} />}
+                            style={styles.studentButton as ViewStyle}
                         >
                             Student Login
                         </Button>
@@ -75,25 +75,131 @@ export default function LoginScreen() {
                             onPress={() => handleLogin('admin')}
                             variant="outline"
                             isLoading={loading}
-                            icon={<Shield size={20} color="#94a3b8" />}
-                            className="h-16 rounded-2xl border-slate-700 bg-white/5"
+                            icon={<Shield size={20} color={Colors.slate400} />}
+                            style={styles.adminButton as ViewStyle}
                         >
-                            <Text className="text-slate-300 font-bold">Admin Dashboard</Text>
+                            <Text style={styles.adminButtonText}>Admin Dashboard</Text>
                         </Button>
 
-                        <View className="flex-row justify-center items-center mt-10">
-                            <Text className="text-slate-400 text-sm">Don't have an account? </Text>
+                        <View style={styles.signupRow as ViewStyle}>
+                            <Text style={styles.signupLabel}>Don't have an account? </Text>
                             <Link href="/signup" asChild>
                                 <TouchableOpacity>
-                                    <Text className="text-emerald-400 font-bold text-sm">Sign Up</Text>
+                                    <Text style={styles.signupText}>Sign Up</Text>
                                 </TouchableOpacity>
                             </Link>
                         </View>
                     </View>
 
-                    <Text className="text-center text-slate-600 text-xs mt-auto pt-10">© 2026 UNIPH Transport Services</Text>
+                    <Text style={styles.copyright}>© 2026 UNIPH Transport Services</Text>
                 </ScrollView>
             </KeyboardAvoidingView>
         </SafeAreaView>
     );
 }
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: Colors.slate900,
+    },
+    flex1: {
+        flex: 1,
+    },
+    scrollContainer: {
+        paddingHorizontal: Spacing.xl,
+        paddingTop: Spacing.xl * 2,
+        paddingBottom: Spacing.xl,
+        flexGrow: 1,
+    },
+    hero: {
+        alignItems: 'center',
+        marginBottom: 64,
+    },
+    logoContainer: {
+        width: 96,
+        height: 96,
+        backgroundColor: Colors.primary,
+        borderRadius: 32,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: Spacing.lg,
+        shadowColor: Colors.primary,
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.5,
+        shadowRadius: 20,
+        elevation: 15,
+    },
+    appName: {
+        fontSize: 32,
+        fontWeight: '900',
+        color: Colors.white,
+        letterSpacing: 4,
+    },
+    uniName: {
+        color: Colors.primary,
+        marginTop: 8,
+        fontSize: 16,
+        fontWeight: '500',
+    },
+    form: {
+        flex: 1,
+    },
+    welcomeTitle: {
+        fontSize: 24,
+        fontWeight: '700',
+        color: Colors.white,
+        marginBottom: Spacing.xl,
+    },
+    forgotPassword: {
+        alignItems: 'flex-end',
+        marginBottom: Spacing.xl,
+    },
+    forgotPasswordText: {
+        color: Colors.primary,
+        fontWeight: '700',
+        fontSize: 14,
+    },
+    studentButton: {
+        height: 64,
+        borderRadius: BorderRadius.xl,
+        backgroundColor: Colors.primary,
+        marginBottom: Spacing.md,
+        shadowColor: Colors.primary,
+        shadowOffset: { width: 0, height: 5 },
+        shadowOpacity: 0.2,
+        shadowRadius: 10,
+        elevation: 5,
+    },
+    adminButton: {
+        height: 64,
+        borderRadius: BorderRadius.xl,
+        backgroundColor: 'rgba(255, 255, 255, 0.05)',
+        borderColor: Colors.slate700,
+    },
+    adminButtonText: {
+        color: Colors.slate300,
+        fontWeight: '700',
+    },
+    signupRow: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginTop: 40,
+    },
+    signupLabel: {
+        color: Colors.slate400,
+        fontSize: 14,
+    },
+    signupText: {
+        color: Colors.primary,
+        fontWeight: '700',
+        fontSize: 14,
+    },
+    copyright: {
+        textAlign: 'center',
+        color: Colors.slate700,
+        fontSize: 12,
+        marginTop: 40,
+    },
+});

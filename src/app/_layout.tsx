@@ -3,7 +3,6 @@ import React, { useEffect } from 'react';
 import { useColorScheme } from 'react-native';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { useAuth } from '../stores/auth';
-import "../global.css";
 
 export default function RootLayout() {
     const colorScheme = useColorScheme();

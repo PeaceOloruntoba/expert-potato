@@ -1,5 +1,6 @@
-import { View, Text, TextInput, TextInputProps } from 'react-native';
+import { View, Text, TextInput, TextInputProps, StyleSheet, ViewStyle } from 'react-native';
 import { ReactNode } from 'react';
+import { Colors, BorderRadius, Spacing } from '@/constants/theme';
 
 interface InputProps extends TextInputProps {
     label?: string;
@@ -9,17 +10,61 @@ interface InputProps extends TextInputProps {
 
 export default function Input({ label, error, leftIcon, ...props }: InputProps) {
     return (
-        <View className="space-y-1.5 w-full mb-4">
-            {label && <Text className="text-sm font-semibold text-slate-700 ml-1">{label}</Text>}
-            <View className="relative flex-row items-center border border-slate-200 rounded-2xl bg-white px-4">
-                {leftIcon && <View className="mr-3">{leftIcon}</View>}
+        <View style={styles.container as ViewStyle}>
+            {label && <Text style={styles.label}>{label}</Text>}
+            <View style={[styles.inputContainer, error ? styles.inputError : null] as ViewStyle[]}>
+                {leftIcon && <View style={styles.iconContainer as ViewStyle}>{leftIcon}</View>}
                 <TextInput 
-                    className="flex-1 py-4 text-slate-900 text-base"
-                    placeholderTextColor="#94a3b8"
+                    style={styles.input}
+                    placeholderTextColor={Colors.slate400}
                     {...props}
                 />
             </View>
-            {error && <Text className="text-xs text-red-500 font-medium ml-1">{error}</Text>}
+            {error && <Text style={styles.errorText}>{error}</Text>}
         </View>
     );
 }
+
+const styles = StyleSheet.create({
+    container: {
+        width: '100%',
+        marginBottom: Spacing.md,
+    },
+    label: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: Colors.slate700,
+        marginLeft: 4,
+        marginBottom: 6,
+    },
+    inputContainer: {
+        position: 'relative',
+        flexDirection: 'row',
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: Colors.slate200,
+        borderRadius: BorderRadius.xl,
+        backgroundColor: Colors.white,
+        paddingHorizontal: Spacing.md,
+        height: 56,
+    },
+    inputError: {
+        borderColor: Colors.red500,
+    },
+    iconContainer: {
+        marginRight: Spacing.sm,
+    },
+    input: {
+        flex: 1,
+        height: '100%',
+        color: Colors.slate900,
+        fontSize: 16,
+    },
+    errorText: {
+        fontSize: 12,
+        color: Colors.red500,
+        fontWeight: '500',
+        marginLeft: 4,
+        marginTop: 4,
+    },
+});

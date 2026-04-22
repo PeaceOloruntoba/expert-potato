@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { View, Text, SafeAreaView, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
-import { Lock, ArrowLeft, Bus, ShieldCheck } from 'lucide-react-native';
+import { View, Text, SafeAreaView, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, StyleSheet } from 'react-native';
+import { Lock, ArrowLeft, ShieldCheck } from 'lucide-react-native';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import { useRouter } from 'expo-router';
+import { Colors, BorderRadius, Spacing } from '@/constants/theme';
 
 export default function ResetPasswordScreen() {
     const router = useRouter();
@@ -19,33 +20,33 @@ export default function ResetPasswordScreen() {
     };
 
     return (
-        <SafeAreaView className="flex-1 bg-slate-900">
+        <SafeAreaView style={styles.container}>
             <KeyboardAvoidingView 
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                className="flex-1"
+                style={styles.flex1}
             >
-                <View className="px-8 pt-12 pb-6">
-                    <TouchableOpacity onPress={() => router.back()} className="w-12 h-12 bg-white/5 rounded-2xl items-center justify-center mr-4">
-                        <ArrowLeft size={24} color="white" />
+                <View style={styles.header}>
+                    <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+                        <ArrowLeft size={24} color={Colors.white} />
                     </TouchableOpacity>
                 </View>
 
-                <ScrollView contentContainerStyle={{ flexGrow: 1 }} className="px-8 pt-4 pb-10">
-                    <View className="items-center mb-12">
-                        <View className="w-20 h-20 bg-emerald-500 rounded-[28px] items-center justify-center mb-5 shadow-2xl shadow-emerald-500/50">
-                            <ShieldCheck size={40} color="white" />
+                <ScrollView contentContainerStyle={styles.scrollContainer} style={styles.flex1} showsVerticalScrollIndicator={false}>
+                    <View style={styles.hero}>
+                        <View style={styles.logoContainer}>
+                            <ShieldCheck size={40} color={Colors.white} />
                         </View>
-                        <Text className="text-3xl font-bold text-white tracking-[2px]">Reset Password</Text>
-                        <Text className="text-emerald-400 mt-2 text-sm font-medium text-center">Set your new password below</Text>
+                        <Text style={styles.title}>Reset Password</Text>
+                        <Text style={styles.subtitle}>Set your new password below</Text>
                     </View>
 
-                    <View className="space-y-6">
+                    <View style={styles.form}>
                         <Input 
                             label="New Password"
                             placeholder="Enter new password"
-                            placeholderTextColor="#64748b"
+                            placeholderTextColor={Colors.slate500}
                             secureTextEntry
-                            leftIcon={<Lock size={20} color="#94a3b8" />}
+                            leftIcon={<Lock size={20} color={Colors.slate400} />}
                             value={passwords.password}
                             onChangeText={(text) => setPasswords({ ...passwords, password: text })}
                         />
@@ -53,9 +54,9 @@ export default function ResetPasswordScreen() {
                         <Input 
                             label="Confirm Password"
                             placeholder="Confirm new password"
-                            placeholderTextColor="#64748b"
+                            placeholderTextColor={Colors.slate500}
                             secureTextEntry
-                            leftIcon={<Lock size={20} color="#94a3b8" />}
+                            leftIcon={<Lock size={20} color={Colors.slate400} />}
                             value={passwords.confirm}
                             onChangeText={(text) => setPasswords({ ...passwords, confirm: text })}
                         />
@@ -63,15 +64,96 @@ export default function ResetPasswordScreen() {
                         <Button 
                             onPress={handleReset}
                             isLoading={isLoading}
-                            className="h-16 rounded-2xl shadow-lg shadow-emerald-500/20"
+                            style={styles.resetButton}
                         >
                             Reset Password
                         </Button>
                     </View>
 
-                    <Text className="text-center text-slate-600 text-xs mt-auto pt-10">© 2026 UNIPH Transport Services</Text>
+                    <Text style={styles.copyright}>© 2026 UNIPH Transport Services</Text>
                 </ScrollView>
             </KeyboardAvoidingView>
         </SafeAreaView>
     );
 }
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: Colors.slate900,
+    },
+    flex1: {
+        flex: 1,
+    },
+    header: {
+        paddingHorizontal: Spacing.xl,
+        paddingTop: Spacing.xl,
+        paddingBottom: Spacing.md,
+    },
+    backButton: {
+        width: 48,
+        height: 48,
+        backgroundColor: 'rgba(255, 255, 255, 0.05)',
+        borderRadius: BorderRadius.xl,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    scrollContainer: {
+        paddingHorizontal: Spacing.xl,
+        paddingTop: Spacing.md,
+        paddingBottom: Spacing.xl,
+        flexGrow: 1,
+    },
+    hero: {
+        alignItems: 'center',
+        marginBottom: 48,
+    },
+    logoContainer: {
+        width: 80,
+        height: 80,
+        backgroundColor: Colors.primary,
+        borderRadius: 28,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: Spacing.lg,
+        shadowColor: Colors.primary,
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.5,
+        shadowRadius: 20,
+        elevation: 15,
+    },
+    title: {
+        fontSize: 30,
+        fontWeight: '700',
+        color: Colors.white,
+        letterSpacing: 2,
+        textAlign: 'center',
+    },
+    subtitle: {
+        color: Colors.primary,
+        marginTop: 8,
+        fontSize: 14,
+        fontWeight: '500',
+        textAlign: 'center',
+    },
+    form: {
+        flex: 1,
+    },
+    resetButton: {
+        height: 64,
+        borderRadius: BorderRadius.xl,
+        backgroundColor: Colors.primary,
+        marginTop: Spacing.xl,
+        shadowColor: Colors.primary,
+        shadowOffset: { width: 0, height: 5 },
+        shadowOpacity: 0.2,
+        shadowRadius: 10,
+        elevation: 5,
+    },
+    copyright: {
+        textAlign: 'center',
+        color: Colors.slate700,
+        fontSize: 12,
+        marginTop: 40,
+    },
+});

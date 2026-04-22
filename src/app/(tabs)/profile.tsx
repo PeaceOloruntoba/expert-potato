@@ -1,10 +1,11 @@
 import { useState, useMemo } from 'react';
-import { View, Text, ScrollView, SafeAreaView, TouchableOpacity } from 'react-native';
-import { User as UserIcon, LogOut, ChevronRight, Settings, Bell, Shield, HelpCircle } from 'lucide-react-native';
+import { View, Text, ScrollView, SafeAreaView, TouchableOpacity, StyleSheet, Platform, ViewStyle } from 'react-native';
+import { User as UserIcon, LogOut, ChevronRight, Bell, Shield, HelpCircle } from 'lucide-react-native';
 import { useAuth } from '../../stores/auth';
 import { useBookings } from '../../stores/bookings';
 import ConfirmationModal from '../../components/ui/ConfirmationModal';
 import Button from '../../components/ui/Button';
+import { Colors, BorderRadius, Spacing } from '@/constants/theme';
 
 export default function ProfileScreen() {
     const { user, logout } = useAuth();
@@ -14,61 +15,64 @@ export default function ProfileScreen() {
     const stats = useMemo(() => {
         const used = bookings.filter((b) => b.status === 'used').length;
         const active = bookings.filter((b) => b.status === 'confirmed').length;
-        const spent = bookings.filter((b) => b.status !== 'cancelled').reduce((acc, b) => acc + b.fare, 0);
+        const spent = bookings.filter((b) => b.status !== 'cancelled').reduce((acc, b) => acc + (b.total_fare || 0), 0);
         return { used, active, spent };
     }, [bookings]);
 
     return (
-        <SafeAreaView className="flex-1 bg-slate-50">
-            <View className="px-6 pt-12 pb-6 bg-white border-b border-slate-100">
-                <Text className="text-2xl font-bold text-slate-900">Profile</Text>
+        <SafeAreaView style={styles.container as ViewStyle}>
+            <View style={styles.header as ViewStyle}>
+                <Text style={styles.headerTitle}>Profile</Text>
             </View>
 
-            <ScrollView className="flex-1 px-6 pt-8" showsVerticalScrollIndicator={false}>
-                <View className="bg-white rounded-[40px] p-8 items-center border border-slate-100 mb-8 shadow-sm">
-                    <View className="w-24 h-24 bg-emerald-500 rounded-[32px] items-center justify-center mb-6 shadow-xl shadow-emerald-500/30">
-                        <Text className="text-white font-bold text-4xl">{user?.name[0] || 'U'}</Text>
+            <ScrollView style={styles.scroll as ViewStyle} contentContainerStyle={styles.scrollContainer as ViewStyle} showsVerticalScrollIndicator={false}>
+                <View style={styles.profileCard as ViewStyle}>
+                    <View style={styles.avatar as ViewStyle}>
+                        <Text style={styles.avatarText}>{user?.name[0] || 'U'}</Text>
                     </View>
-                    <Text className="text-2xl font-bold text-slate-900 mb-1">{user?.name || 'User'}</Text>
-                    <Text className="text-slate-400 font-medium mb-2">{user?.email || 'email@uniph.edu.ng'}</Text>
+                    <Text style={styles.userName}>{user?.name || 'User'}</Text>
+                    <Text style={styles.userEmail}>{user?.email || 'email@uniph.edu.ng'}</Text>
                     {user?.matric && (
-                        <View className="bg-slate-900 px-4 py-1.5 rounded-full">
-                            <Text className="text-emerald-400 font-mono text-[10px] font-bold">{user.matric}</Text>
+                        <View style={styles.matricBadge as ViewStyle}>
+                            <Text style={styles.matricText}>{user.matric}</Text>
                         </View>
                     )}
                 </View>
 
-                <View className="flex-row gap-4 mb-8">
+                <View style={styles.statsRow as ViewStyle}>
                     {[
-                        { label: 'Trips', value: stats.used, color: 'text-blue-500' },
-                        { label: 'Active', value: stats.active, color: 'text-emerald-500' },
-                        { label: 'Spent', value: `₦${stats.spent}`, color: 'text-amber-500' },
+                        { label: 'Trips', value: stats.used, color: '#3b82f6' },
+                        { label: 'Active', value: stats.active, color: Colors.primary },
+                        { label: 'Spent', value: `₦${stats.spent}`, color: '#f59e0b' },
                     ].map(item => (
-                        <View key={item.label} className="flex-1 bg-white p-5 rounded-[28px] items-center border border-slate-100 shadow-sm">
-                            <Text className={`text-xl font-bold ${item.color}`}>{item.value}</Text>
-                            <Text className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mt-1">{item.label}</Text>
+                        <View key={item.label} style={styles.statCard as ViewStyle}>
+                            <Text style={[styles.statValue, { color: item.color }]}>{item.value}</Text>
+                            <Text style={styles.statLabel}>{item.label}</Text>
                         </View>
                     ))}
                 </View>
 
-                <View className="bg-white rounded-[32px] p-2 border border-slate-100 mb-8 shadow-sm overflow-hidden">
+                <View style={styles.menuCard as ViewStyle}>
                     {[
                         { label: 'Personal Information', icon: UserIcon },
                         { label: 'Notifications', icon: Bell },
                         { label: 'Security & Password', icon: Shield },
                         { label: 'Help & Support', icon: HelpCircle },
-                    ].map((item, index) => (
+                    ].map((item, index, arr) => (
                         <TouchableOpacity 
                             key={item.label} 
-                            className={`flex-row items-center justify-between p-4 ${index !== 3 ? 'border-b border-slate-50' : ''}`}
+                            style={[
+                                styles.menuItem,
+                                index !== arr.length - 1 ? styles.menuItemBorder : null
+                            ] as ViewStyle[]}
                         >
-                            <View className="flex-row items-center">
-                                <View className="w-10 h-10 bg-slate-50 rounded-xl items-center justify-center mr-4">
-                                    <item.icon size={20} color="#64748b" />
+                            <View style={styles.menuItemLeft as ViewStyle}>
+                                <View style={styles.menuIconContainer as ViewStyle}>
+                                    <item.icon size={20} color={Colors.slate500} />
                                 </View>
-                                <Text className="text-slate-700 font-semibold">{item.label}</Text>
+                                <Text style={styles.menuLabel}>{item.label}</Text>
                             </View>
-                            <ChevronRight size={18} color="#cbd5e1" />
+                            <ChevronRight size={18} color={Colors.slate300} />
                         </TouchableOpacity>
                     ))}
                 </View>
@@ -76,13 +80,13 @@ export default function ProfileScreen() {
                 <Button 
                     variant="secondary" 
                     onPress={() => setIsLogoutConfirmOpen(true)} 
-                    icon={<LogOut size={20} color="#ef4444" />}
-                    className="h-16 rounded-2xl bg-red-50 border border-red-100 mb-10"
+                    icon={<LogOut size={20} color={Colors.red500} />}
+                    style={styles.signOutButton as ViewStyle}
                 >
-                    <Text className="text-red-500 font-bold">Sign Out</Text>
+                    <Text style={styles.signOutText}>Sign Out</Text>
                 </Button>
                 
-                <View className="h-10" />
+                <View style={styles.footerSpacer as ViewStyle} />
             </ScrollView>
 
             <ConfirmationModal 
@@ -100,3 +104,174 @@ export default function ProfileScreen() {
         </SafeAreaView>
     );
 }
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: Colors.slate50,
+    },
+    header: {
+        paddingHorizontal: Spacing.lg,
+        paddingTop: Spacing.xl + 10,
+        paddingBottom: Spacing.lg,
+        backgroundColor: Colors.white,
+        borderBottomWidth: 1,
+        borderBottomColor: Colors.slate100,
+    },
+    headerTitle: {
+        fontSize: 24,
+        fontWeight: '700',
+        color: Colors.slate900,
+    },
+    scroll: {
+        flex: 1,
+    },
+    scrollContainer: {
+        paddingHorizontal: Spacing.lg,
+        paddingTop: Spacing.xl,
+    },
+    profileCard: {
+        backgroundColor: Colors.white,
+        borderRadius: 40,
+        padding: Spacing.xl,
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: Colors.slate100,
+        marginBottom: Spacing.xl,
+        shadowColor: Colors.black,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 5,
+        elevation: 2,
+    },
+    avatar: {
+        width: 96,
+        height: 96,
+        backgroundColor: Colors.primary,
+        borderRadius: 32,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: Spacing.lg,
+        shadowColor: Colors.primary,
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.3,
+        shadowRadius: 15,
+        elevation: 10,
+    },
+    avatarText: {
+        color: Colors.white,
+        fontWeight: '700',
+        fontSize: 36,
+    },
+    userName: {
+        fontSize: 24,
+        fontWeight: '700',
+        color: Colors.slate900,
+        marginBottom: 4,
+    },
+    userEmail: {
+        color: Colors.slate400,
+        fontWeight: '500',
+        marginBottom: Spacing.sm,
+    },
+    matricBadge: {
+        backgroundColor: Colors.slate900,
+        paddingHorizontal: 16,
+        paddingVertical: 6,
+        borderRadius: BorderRadius.full,
+    },
+    matricText: {
+        color: Colors.primary,
+        fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+        fontSize: 10,
+        fontWeight: '700',
+    },
+    statsRow: {
+        flexDirection: 'row',
+        gap: Spacing.md,
+        marginBottom: Spacing.xl,
+    },
+    statCard: {
+        flex: 1,
+        backgroundColor: Colors.white,
+        padding: Spacing.lg,
+        borderRadius: 28,
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: Colors.slate100,
+        shadowColor: Colors.black,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 5,
+        elevation: 2,
+    },
+    statValue: {
+        fontSize: 20,
+        fontWeight: '700',
+    },
+    statLabel: {
+        color: Colors.slate400,
+        fontSize: 10,
+        fontWeight: '700',
+        textTransform: 'uppercase',
+        letterSpacing: 1.5,
+        marginTop: 4,
+    },
+    menuCard: {
+        backgroundColor: Colors.white,
+        borderRadius: 32,
+        padding: Spacing.sm,
+        borderWidth: 1,
+        borderColor: Colors.slate100,
+        marginBottom: Spacing.xl,
+        shadowColor: Colors.black,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 5,
+        elevation: 2,
+        overflow: 'hidden',
+    },
+    menuItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: Spacing.md,
+    },
+    menuItemBorder: {
+        borderBottomWidth: 1,
+        borderBottomColor: Colors.slate50,
+    },
+    menuItemLeft: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    menuIconContainer: {
+        width: 40,
+        height: 40,
+        backgroundColor: Colors.slate50,
+        borderRadius: BorderRadius.lg,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginRight: Spacing.md,
+    },
+    menuLabel: {
+        color: Colors.slate700,
+        fontWeight: '600',
+        fontSize: 14,
+    },
+    signOutButton: {
+        height: 64,
+        borderRadius: BorderRadius.xl,
+        backgroundColor: Colors.red50,
+        borderWidth: 1,
+        borderColor: Colors.red100,
+        marginBottom: 40,
+    },
+    signOutText: {
+        color: Colors.red500,
+        fontWeight: '700',
+    },
+    footerSpacer: {
+        height: 40,
+    },
+});

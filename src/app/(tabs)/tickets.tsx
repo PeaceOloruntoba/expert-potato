@@ -1,14 +1,15 @@
 import { useState, useMemo, useEffect } from 'react';
-import { View, Text, ScrollView, SafeAreaView, TouchableOpacity, RefreshControl } from 'react-native';
+import { View, Text, ScrollView, SafeAreaView, TouchableOpacity, RefreshControl, StyleSheet, Platform, ViewStyle } from 'react-native';
 import { Ticket as TicketIcon, Calendar, Clock, Users } from 'lucide-react-native';
 import { useBookings, type Booking } from '../../stores/bookings';
 import { useAuth } from '../../stores/auth';
 import { useRouter } from 'expo-router';
+import { Colors, BorderRadius, Spacing } from '@/constants/theme';
 
 const statusCfg = {
-    confirmed: { bg: 'bg-emerald-50', color: '#10b981', label: 'Confirmed' },
-    used:      { bg: 'bg-blue-50', color: '#3b82f6', label: 'Used' },
-    cancelled: { bg: 'bg-red-50', color: '#ef4444', label: 'Cancelled' },
+    confirmed: { bg: Colors.primaryLight, color: Colors.primary, label: 'Confirmed' },
+    used:      { bg: Colors.blue50, color: Colors.blue600, label: 'Used' },
+    cancelled: { bg: Colors.red50, color: Colors.red600, label: 'Cancelled' },
 };
 
 export default function TicketsScreen() {
@@ -23,32 +24,33 @@ export default function TicketsScreen() {
     const pastBookings = bookings.filter(b => b.status !== 'confirmed' && b.payment_status !== 'paid');
 
     return (
-        <SafeAreaView className="flex-1 bg-slate-50">
-            <View className="px-6 pt-12 pb-6 bg-white border-b border-slate-100">
-                <Text className="text-2xl font-bold text-slate-900">My Tickets</Text>
-                <Text className="text-slate-400 text-sm font-medium">{bookings.length} total bookings</Text>
+        <SafeAreaView style={styles.container as ViewStyle}>
+            <View style={styles.header as ViewStyle}>
+                <Text style={styles.headerTitle}>My Tickets</Text>
+                <Text style={styles.headerSubtitle}>{bookings.length} total bookings</Text>
             </View>
 
             <ScrollView 
-                className="flex-1 px-6 pt-6" 
+                style={styles.scroll as ViewStyle}
+                contentContainerStyle={styles.scrollContainer as ViewStyle}
                 showsVerticalScrollIndicator={false}
                 refreshControl={
-                    <RefreshControl refreshing={loading} onRefresh={() => user && fetchMyBookings(user.id)} tintColor="#10b981" />
+                    <RefreshControl refreshing={loading} onRefresh={() => user && fetchMyBookings(user.id)} tintColor={Colors.primary} />
                 }
             >
                 {!bookings.length && !loading && (
-                    <View className="items-center justify-center py-20">
-                        <View className="w-20 h-20 bg-slate-50 rounded-full items-center justify-center mb-4">
-                            <TicketIcon size={40} color="#cbd5e1" />
+                    <View style={styles.emptyState as ViewStyle}>
+                        <View style={styles.emptyIconContainer as ViewStyle}>
+                            <TicketIcon size={40} color={Colors.slate300} />
                         </View>
-                        <Text className="text-slate-400 font-bold">No tickets yet</Text>
-                        <Text className="text-slate-300 text-xs mt-1">Your travel history will appear here</Text>
+                        <Text style={styles.emptyTitle}>No tickets yet</Text>
+                        <Text style={styles.emptySubtitle}>Your travel history will appear here</Text>
                     </View>
                 )}
 
                 {activeBookings.length > 0 && (
                     <>
-                        <Text className="text-xs font-bold text-emerald-500 uppercase tracking-widest mb-4">Active Trips</Text>
+                        <Text style={styles.sectionLabel}>Active Trips</Text>
                         {activeBookings.map((b) => (
                             <TicketCard key={b.id} ticket={b} />
                         ))}
@@ -57,64 +59,219 @@ export default function TicketsScreen() {
 
                 {pastBookings.length > 0 && (
                     <>
-                        <Text className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-4 mb-4">Past Trips</Text>
+                        <Text style={styles.sectionLabelPast}>Past Trips</Text>
                         {pastBookings.map((b) => (
                             <TicketCard key={b.id} ticket={b} />
                         ))}
                     </>
                 )}
-                <View className="h-10" />
+                <View style={styles.footerSpacer as ViewStyle} />
             </ScrollView>
         </SafeAreaView>
     );
 }
 
 function TicketCard({ ticket }: { ticket: Booking }) {
-    const sc = statusCfg[ticket.status as keyof typeof statusCfg] || statusCfg.confirmed;
     const router = useRouter();
 
     return (
         <TouchableOpacity 
             onPress={() => router.push({
-                pathname: '/ticket-detail',
+                pathname: '/ticket-detail' as any,
                 params: { ticketId: ticket.id }
             })}
             activeOpacity={0.8}
-            className="bg-white rounded-[32px] p-6 mb-4 border border-slate-100 shadow-sm"
+            style={styles.card as ViewStyle}
         >
-            <View className="flex-row justify-between items-start mb-4">
+            <View style={styles.cardHeader as ViewStyle}>
                 <View>
-                    <Text className="font-mono text-[10px] text-slate-400 font-bold mb-1">{ticket.id.slice(0, 8)}...</Text>
-                    <Text className="text-base font-bold text-slate-900">
+                    <Text style={styles.ticketId}>#{ticket.id.slice(0, 8).toUpperCase()}...</Text>
+                    <Text style={styles.routeText}>
                         {ticket.origin} → {ticket.destination}
                     </Text>
                 </View>
-                <View className={`${ticket.payment_status === 'paid' ? 'bg-emerald-50' : 'bg-orange-50'} px-3 py-1 rounded-full`}>
-                    <Text className={`text-[10px] font-bold uppercase ${ticket.payment_status === 'paid' ? 'text-emerald-600' : 'text-orange-600'}`}>
+                <View style={[
+                    styles.paymentBadge,
+                    { backgroundColor: ticket.payment_status === 'paid' ? Colors.primaryLight : Colors.orange50 }
+                ] as ViewStyle[]}>
+                    <Text style={[
+                        styles.paymentBadgeText,
+                        { color: ticket.payment_status === 'paid' ? Colors.primaryDark : Colors.orange600 }
+                    ]}>
                         {ticket.payment_status === 'paid' ? 'PAID' : 'PENDING'}
                     </Text>
                 </View>
             </View>
 
-            <View className="flex-row gap-4 mb-4">
-                <View className="flex-row items-center">
-                    <Calendar size={12} color="#94a3b8" />
-                    <Text className="ml-2 text-xs font-medium text-slate-500">{new Date(ticket.booking_date).toLocaleDateString()}</Text>
+            <View style={styles.metaRow as ViewStyle}>
+                <View style={styles.metaItem as ViewStyle}>
+                    <Calendar size={12} color={Colors.slate400} />
+                    <Text style={styles.metaText}>{new Date(ticket.booking_date).toLocaleDateString()}</Text>
                 </View>
-                <View className="flex-row items-center">
-                    <Clock size={12} color="#94a3b8" />
-                    <Text className="ml-2 text-xs font-medium text-slate-500">{ticket.departure_time}</Text>
+                <View style={styles.metaItem as ViewStyle}>
+                    <Clock size={12} color={Colors.slate400} />
+                    <Text style={styles.metaText}>{ticket.departure_time}</Text>
                 </View>
-                <View className="flex-row items-center">
-                    <Users size={12} color="#94a3b8" />
-                    <Text className="ml-2 text-xs font-medium text-slate-500">{ticket.seats.length} seat(s)</Text>
+                <View style={styles.metaItem as ViewStyle}>
+                    <Users size={12} color={Colors.slate400} />
+                    <Text style={styles.metaText}>{ticket.seats.length} seat(s)</Text>
                 </View>
             </View>
 
-            <View className="border-t border-slate-50 pt-4 flex-row justify-between items-center">
-                <Text className="text-slate-400 text-xs font-medium">Total Paid</Text>
-                <Text className="text-emerald-600 font-bold text-lg">₦{ticket.total_fare}</Text>
+            <View style={styles.cardFooter as ViewStyle}>
+                <Text style={styles.footerLabel}>Total Paid</Text>
+                <Text style={styles.footerValue}>₦{ticket.total_fare}</Text>
             </View>
         </TouchableOpacity>
     );
 }
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: Colors.slate50,
+    },
+    header: {
+        paddingHorizontal: Spacing.lg,
+        paddingTop: Spacing.xl + 10,
+        paddingBottom: Spacing.lg,
+        backgroundColor: Colors.white,
+        borderBottomWidth: 1,
+        borderBottomColor: Colors.slate100,
+    },
+    headerTitle: {
+        fontSize: 24,
+        fontWeight: '700',
+        color: Colors.slate900,
+    },
+    headerSubtitle: {
+        color: Colors.slate400,
+        fontSize: 14,
+        fontWeight: '500',
+    },
+    scroll: {
+        flex: 1,
+    },
+    scrollContainer: {
+        paddingHorizontal: Spacing.lg,
+        paddingTop: Spacing.lg,
+    },
+    emptyState: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 80,
+    },
+    emptyIconContainer: {
+        width: 80,
+        height: 80,
+        backgroundColor: Colors.slate50,
+        borderRadius: 40,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: Spacing.md,
+    },
+    emptyTitle: {
+        color: Colors.slate400,
+        fontWeight: '700',
+        fontSize: 16,
+    },
+    emptySubtitle: {
+        color: Colors.slate300,
+        fontSize: 12,
+        marginTop: 4,
+    },
+    sectionLabel: {
+        fontSize: 10,
+        fontWeight: '700',
+        color: Colors.primary,
+        textTransform: 'uppercase',
+        letterSpacing: 1.5,
+        marginBottom: Spacing.md,
+    },
+    sectionLabelPast: {
+        fontSize: 10,
+        fontWeight: '700',
+        color: Colors.slate400,
+        textTransform: 'uppercase',
+        letterSpacing: 1.5,
+        marginTop: Spacing.md,
+        marginBottom: Spacing.md,
+    },
+    card: {
+        backgroundColor: Colors.white,
+        borderRadius: 32,
+        padding: Spacing.lg,
+        marginBottom: Spacing.md,
+        borderWidth: 1,
+        borderColor: Colors.slate100,
+        shadowColor: Colors.black,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 5,
+        elevation: 2,
+    },
+    cardHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        marginBottom: Spacing.md,
+    },
+    ticketId: {
+        fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+        fontSize: 10,
+        color: Colors.slate400,
+        fontWeight: '700',
+        marginBottom: 4,
+    },
+    routeText: {
+        fontSize: 16,
+        fontWeight: '700',
+        color: Colors.slate900,
+    },
+    paymentBadge: {
+        paddingHorizontal: 12,
+        paddingVertical: 4,
+        borderRadius: BorderRadius.full,
+    },
+    paymentBadgeText: {
+        fontSize: 10,
+        fontWeight: '700',
+        textTransform: 'uppercase',
+    },
+    metaRow: {
+        flexDirection: 'row',
+        gap: Spacing.md,
+        marginBottom: Spacing.md,
+    },
+    metaItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    metaText: {
+        marginLeft: 8,
+        fontSize: 12,
+        fontWeight: '500',
+        color: Colors.slate500,
+    },
+    cardFooter: {
+        borderTopWidth: 1,
+        borderTopColor: Colors.slate50,
+        paddingTop: Spacing.md,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+    footerLabel: {
+        color: Colors.slate400,
+        fontSize: 12,
+        fontWeight: '500',
+    },
+    footerValue: {
+        color: Colors.primaryDark,
+        fontWeight: '700',
+        fontSize: 18,
+    },
+    footerSpacer: {
+        height: 40,
+    },
+});
