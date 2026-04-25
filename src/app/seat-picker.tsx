@@ -12,10 +12,10 @@ import { Colors, BorderRadius, Spacing } from '@/constants/theme';
 
 export default function SeatPickerScreen() {
     const router = useRouter();
-    const { routeId } = useLocalSearchParams();
+    const { routeId, payment_reference } = useLocalSearchParams();
     const { routes } = useRoutes();
     const { buses, fetchBuses } = useFleet();
-    const { addBooking, loading, bookedSeats, fetchBookedSeats } = useBookings();
+    const { addBooking, loading, bookedSeats, fetchBookedSeats, verifyPayment } = useBookings();
     
     const route = routes.find(r => r.id === routeId);
     const bus = buses.find(b => b.id === route?.bus_id);
@@ -23,6 +23,35 @@ export default function SeatPickerScreen() {
     const [dep, setDep] = useState(route?.departures?.[0] || '');
     const [date] = useState(new Date().toISOString().split('T')[0]);
     const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+
+    // Handle payment verification if reference is present
+    useEffect(() => {
+        const verify = async () => {
+            if (payment_reference) {
+                try {
+                    const result = await verifyPayment(payment_reference as string);
+                    if (result.success && result.booking.payment_status === 'paid') {
+                        router.replace({
+                            pathname: '/(tabs)' as any,
+                            params: { 
+                                booking_success: 'true',
+                                booking_id: result.booking.id,
+                                departure_time: result.booking.departure_time,
+                                booking_date: result.booking.booking_date,
+                                seat_numbers: result.booking.seats.join(', ')
+                            }
+                        });
+                    } else {
+                        Alert.alert("Payment Failed", "Verification failed. Please check your tickets or contact support.");
+                    }
+                } catch (err) {
+                    console.error("Verification error:", err);
+                    Alert.alert("Verification Error", "An error occurred while verifying your payment.");
+                }
+            }
+        };
+        verify();
+    }, [payment_reference]);
 
     useEffect(() => {
         if (route && dep) {
@@ -70,7 +99,8 @@ export default function SeatPickerScreen() {
                 pathname: '/payment' as any,
                 params: { 
                     authUrl: result.payment.authorization_url,
-                    reference: result.payment.reference
+                    reference: result.payment.reference,
+                    routeId: route.id
                 }
             });
         } catch (err: any) {

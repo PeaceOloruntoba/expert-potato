@@ -13,34 +13,29 @@ export default function PaymentScreen() {
     const { verifyPayment } = useBookings();
     const [loading, setLoading] = React.useState(true);
 
-    const handleNavigationStateChange = async (navState: any) => {
+    const handleNavigationStateChange = (navState: any) => {
         const { url } = navState;
         
         // Check if the URL matches Paystack's default close/callback pattern
-        if (url.includes('callback') || url.includes('finish') || url.includes('success')) {
-            const urlParams = new URLSearchParams(url.split('?')[1]);
-            const paystackRef = urlParams.get('reference');
+        if (url.includes('close') || url.includes('callback') || url.includes('finish') || url.includes('success')) {
+            const urlParts = url.split('?');
+            let paystackRef = null;
+            
+            if (urlParts.length > 1) {
+                const urlParams = new URLSearchParams(urlParts[1]);
+                paystackRef = urlParams.get('reference') || urlParams.get('trxref');
+            }
+
             const finalReference = paystackRef || (reference as string);
 
-            if (!finalReference) {
-                Alert.alert("Payment Error", "Payment reference not found.");
-                router.back();
-                return;
-            }
-            try {
-                const result = await verifyPayment(finalReference);
-                if (result.success) {
-                    Alert.alert("Success", "Payment verified successfully!", [
-                        { text: "View Tickets", onPress: () => router.replace('/(tabs)/tickets' as any) }
-                    ]);
-                } else {
-                    Alert.alert("Payment Failed", "Could not verify payment. Please contact support.");
-                    router.back();
+            // Redirect back to seat-picker with the reference for verification
+            router.replace({
+                pathname: '/seat-picker' as any,
+                params: { 
+                    payment_reference: finalReference,
+                    routeId: (useLocalSearchParams() as any).routeId // Ensure routeId is preserved
                 }
-            } catch (err) {
-                console.error("Verification error:", err);
-                router.replace('/(tabs)/tickets' as any);
-            }
+            });
         }
     };
 

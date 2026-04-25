@@ -1,17 +1,29 @@
 import { SafeAreaView } from 'react-native-safe-area-context';
 import React, { useState, useMemo, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, RefreshControl, StyleSheet, TextInput, Platform, ViewStyle } from 'react-native';
-import { Search, MapPin, Clock, Users, Bus } from 'lucide-react-native';
+import { Search, MapPin, Clock, Users, Bus, CheckCircle, X } from 'lucide-react-native';
 import { useAuth } from '../../stores/auth';
 import { useRoutes, type Route } from '../../stores/routes';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Colors, BorderRadius, Spacing } from '@/constants/theme';
+import Modal from 'react-native-modal';
 
 export default function HomeScreen() {
     const { user } = useAuth();
     const { routes, fetchRoutes, loading } = useRoutes();
     const [search, setSearch] = useState("");
     const router = useRouter();
+    const params = useLocalSearchParams();
+    
+    const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+
+    useEffect(() => {
+        if (params.booking_success === 'true') {
+            setIsSuccessModalOpen(true);
+            // Clear params by replacing current route
+            router.replace('/(tabs)');
+        }
+    }, [params.booking_success]);
 
     useEffect(() => {
         fetchRoutes();
@@ -125,6 +137,59 @@ export default function HomeScreen() {
                     ))}
                     <View style={styles.footerSpacer as ViewStyle} />
                 </ScrollView>
+
+                {/* Success Modal */}
+                <Modal 
+                    isVisible={isSuccessModalOpen}
+                    onBackdropPress={() => setIsSuccessModalOpen(false)}
+                    onBackButtonPress={() => setIsSuccessModalOpen(false)}
+                    backdropOpacity={0.5}
+                    animationIn="zoomIn"
+                    animationOut="zoomOut"
+                >
+                    <View style={styles.modalContent}>
+                        <View style={styles.successIconContainer}>
+                            <CheckCircle size={60} color={Colors.white} />
+                        </View>
+                        
+                        <Text style={styles.modalTitle}>Booking Successful!</Text>
+                        <Text style={styles.modalDescription}>
+                            Your seat has been reserved successfully.
+                        </Text>
+                        
+                        <View style={styles.detailsCard}>
+                            <View style={styles.detailRow}>
+                                <Text style={styles.detailLabel}>Departure</Text>
+                                <Text style={styles.detailValue}>{params.departure_time || 'N/A'}</Text>
+                            </View>
+                            <View style={styles.detailRow}>
+                                <Text style={styles.detailLabel}>Date</Text>
+                                <Text style={styles.detailValue}>{params.booking_date ? new Date(params.booking_date as string).toLocaleDateString() : 'N/A'}</Text>
+                            </View>
+                            <View style={styles.detailRow}>
+                                <Text style={styles.detailLabel}>Seat(s)</Text>
+                                <Text style={styles.detailValue}>{params.seat_numbers || 'N/A'}</Text>
+                            </View>
+                        </View>
+                        
+                        <TouchableOpacity 
+                            style={styles.modalButton}
+                            onPress={() => {
+                                setIsSuccessModalOpen(false);
+                                router.push('/(tabs)/tickets' as any);
+                            }}
+                        >
+                            <Text style={styles.modalButtonText}>View Ticket</Text>
+                        </TouchableOpacity>
+                        
+                        <TouchableOpacity 
+                            style={styles.closeButton}
+                            onPress={() => setIsSuccessModalOpen(false)}
+                        >
+                            <X size={20} color={Colors.slate400} />
+                        </TouchableOpacity>
+                    </View>
+                </Modal>
             </View>
         </SafeAreaView>
     );
@@ -302,6 +367,87 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         marginBottom: 8,
+    },
+    modalContent: {
+        backgroundColor: Colors.white,
+        padding: 30,
+        borderRadius: 40,
+        alignItems: 'center',
+        position: 'relative',
+    },
+    successIconContainer: {
+        width: 100,
+        height: 100,
+        borderRadius: 50,
+        backgroundColor: Colors.primary,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: 20,
+        shadowColor: Colors.primary,
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.3,
+        shadowRadius: 20,
+        elevation: 10,
+    },
+    modalTitle: {
+        fontSize: 24,
+        fontWeight: '700',
+        color: Colors.slate900,
+        marginBottom: 8,
+    },
+    modalDescription: {
+        fontSize: 14,
+        color: Colors.slate500,
+        textAlign: 'center',
+        marginBottom: 24,
+    },
+    detailsCard: {
+        backgroundColor: Colors.slate50,
+        borderRadius: 24,
+        padding: 20,
+        width: '100%',
+        marginBottom: 24,
+        borderWidth: 1,
+        borderColor: Colors.slate100,
+    },
+    detailRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: 12,
+    },
+    detailLabel: {
+        fontSize: 12,
+        color: Colors.slate400,
+        fontWeight: '500',
+    },
+    detailValue: {
+        fontSize: 14,
+        color: Colors.slate900,
+        fontWeight: '700',
+    },
+    modalButton: {
+        backgroundColor: Colors.slate900,
+        width: '100%',
+        height: 56,
+        borderRadius: BorderRadius.xl,
+        alignItems: 'center',
+        justifyContent: 'center',
+        shadowColor: Colors.slate900,
+        shadowOffset: { width: 0, height: 5 },
+        shadowOpacity: 0.2,
+        shadowRadius: 10,
+        elevation: 5,
+    },
+    modalButtonText: {
+        color: Colors.white,
+        fontSize: 16,
+        fontWeight: '700',
+    },
+    closeButton: {
+        position: 'absolute',
+        top: 20,
+        right: 20,
+        padding: 10,
     },
     locationText: {
         marginLeft: Spacing.sm,
