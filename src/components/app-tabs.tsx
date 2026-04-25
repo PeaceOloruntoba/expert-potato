@@ -16,7 +16,7 @@ export default function AppTabs() {
       <NativeTabs.Trigger name="index">
         <NativeTabs.Trigger.Label>Home</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon
-          src={require('@/assets/images/tabIcons/home.png')}
+          src={{ uri: 'https://via.placeholder.com/24x24?text=H' }}
           renderingMode="template"
         />
       </NativeTabs.Trigger>
@@ -24,7 +24,7 @@ export default function AppTabs() {
       <NativeTabs.Trigger name="explore">
         <NativeTabs.Trigger.Label>Explore</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon
-          src={require('@/assets/images/tabIcons/explore.png')}
+          src={{ uri: 'https://via.placeholder.com/24x24?text=E' }}
           renderingMode="template"
         />
       </NativeTabs.Trigger>

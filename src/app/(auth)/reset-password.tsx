@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import { View, Text, SafeAreaView, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, StyleSheet, ViewStyle, Alert } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, StyleSheet, ViewStyle, Alert } from 'react-native';
 import { Lock, ArrowLeft, ShieldCheck, Hash } from 'lucide-react-native';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';

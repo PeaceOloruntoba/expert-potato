@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
-import { View, Text, ScrollView, SafeAreaView, TouchableOpacity, Alert, StyleSheet, Platform, ViewStyle } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { useState, useEffect } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, Alert, StyleSheet, Platform, ViewStyle } from 'react-native';
 import { ArrowLeft } from 'lucide-react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useRoutes } from '@/stores/routes';
@@ -16,7 +17,7 @@ export default function SeatPickerScreen() {
     
     const route = routes.find(r => r.id === routeId);
     const [selectedSeats, setSelectedSeats] = useState<number[]>([]);
-    const [dep, setDep] = useState(route?.departures[0] || '');
+    const [dep, setDep] = useState(route?.departures?.[0] || '');
     const [date] = useState(new Date().toISOString().split('T')[0]);
     const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
@@ -88,7 +89,7 @@ export default function SeatPickerScreen() {
                 {/* Departure Times */}
                 <Text style={styles.sectionLabel}>Departure Time</Text>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.departureScroll as ViewStyle}>
-                    {route.departures.map((d: string) => (
+                    {route.departures?.map((d: string) => (
                         <TouchableOpacity 
                             key={d} 
                             onPress={() => setDep(d)}
@@ -119,7 +120,7 @@ export default function SeatPickerScreen() {
                     </View>
 
                     <View style={styles.seatsGrid as ViewStyle}>
-                        {seatRows.map(s => {
+                        {seatRows?.map(s => {
                             const isBooked = bookedSeats.includes(s.id);
                             const isSelected = selectedSeats.includes(s.id);
                             return (

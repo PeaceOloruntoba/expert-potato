@@ -1,5 +1,6 @@
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState } from 'react';
-import { View, Text, ScrollView, SafeAreaView, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { ArrowLeft, Bus, Ticket as TicketIcon, Trash2 } from 'lucide-react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useBookings } from '@/stores/bookings';

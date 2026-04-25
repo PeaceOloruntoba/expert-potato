@@ -1,5 +1,5 @@
 import { Image } from 'expo-image';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Dimensions, StyleSheet, View } from 'react-native';
 import Animated, { Easing, Keyframe } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
@@ -84,12 +84,12 @@ export function AnimatedIcon() {
   return (
     <View style={styles.iconContainer}>
       <Animated.View entering={glowKeyframe.duration(60 * 1000 * 4)} style={styles.glow}>
-        <Image style={styles.glow} source={require('@/assets/images/logo-glow.png')} />
+        <Image style={styles.glow} source={{ uri: 'https://via.placeholder.com/201x201?text=Glow' }} />
       </Animated.View>
 
       <Animated.View entering={keyframe.duration(DURATION)} style={styles.background} />
       <Animated.View style={styles.imageContainer} entering={logoKeyframe.duration(DURATION)}>
-        <Image style={styles.image} source={require('@/assets/images/expo-logo.png')} />
+        <Image style={styles.image} source={{ uri: 'https://via.placeholder.com/76x71?text=Logo' }} />
       </Animated.View>
     </View>
   );

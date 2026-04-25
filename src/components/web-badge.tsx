@@ -17,11 +17,11 @@ export function WebBadge() {
         v{version}
       </ThemedText>
       <Image
-        source={
-          scheme === 'dark'
-            ? require('@/assets/images/expo-badge-white.png')
-            : require('@/assets/images/expo-badge.png')
-        }
+        source={{
+          uri: scheme === 'dark'
+            ? 'https://via.placeholder.com/123x24?text=Expo+Badge+White'
+            : 'https://via.placeholder.com/123x24?text=Expo+Badge'
+        }}
         style={styles.badgeImage}
       />
     </ThemedView>
@@ -30,9 +30,9 @@ export function WebBadge() {
 
 const styles = StyleSheet.create({
   container: {
-    padding: Spacing.five,
+    padding: Spacing.xl,
     alignItems: 'center',
-    gap: Spacing.two,
+    gap: Spacing.sm,
   },
   versionText: {
     textAlign: 'center',

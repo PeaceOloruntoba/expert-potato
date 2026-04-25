@@ -1,6 +1,9 @@
 import { Platform } from 'react-native';
 
-export const Colors = {
+const tintColorLight = '#0a7ea4';
+const tintColorDark = '#fff';
+
+const palette = {
   primary: '#10b981', // emerald-500
   primaryLight: '#ecfdf5', // emerald-50
   primaryDark: '#059669', // emerald-600
@@ -24,6 +27,38 @@ export const Colors = {
   blue600: '#2563eb',
   orange50: '#fff7ed',
   orange600: '#ea580c',
+} as const;
+
+export const Colors = {
+  ...palette,
+  light: {
+    ...palette,
+    text: '#11181C',
+    textSecondary: '#687076',
+    background: '#fff',
+    backgroundElement: '#f1f5f9',
+    tint: tintColorLight,
+    icon: '#687076',
+    tabIconDefault: '#687076',
+    tabIconSelected: tintColorLight,
+  },
+  dark: {
+    ...palette,
+    text: '#ECEDEE',
+    textSecondary: '#9BA1A6',
+    background: '#151718',
+    backgroundElement: '#1e293b',
+    tint: tintColorDark,
+    icon: '#9BA1A6',
+    tabIconDefault: '#9BA1A6',
+    tabIconSelected: tintColorDark,
+  },
+} as const;
+
+export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
+
+export const Fonts = {
+  mono: Platform.select({ ios: 'Menlo', android: 'monospace', default: 'monospace' }),
 } as const;
 
 export const Spacing = {

@@ -1,5 +1,6 @@
-import { useState, useRef } from 'react';
-import { View, Text, SafeAreaView, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, TextInput, StyleSheet, ViewStyle, Alert } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { useState, useRef } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, TextInput, StyleSheet, ViewStyle, Alert } from 'react-native';
 import { ArrowLeft, CheckCircle2 } from 'lucide-react-native';
 import Button from '../../components/ui/Button';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -39,7 +40,7 @@ export default function OTPVerificationScreen() {
         try {
             await verifyOTP({ user_id, otp: code });
             Alert.alert("Success", "Email verified successfully!", [
-                { text: "Continue", onPress: () => router.replace('/(tabs)' as any) }
+                { text: "Continue", onPress: () => router.replace('/(auth)/login' as any) }
             ]);
         } catch (err: any) {
             const msg = err.response?.data?.message || err.message || "Verification failed";

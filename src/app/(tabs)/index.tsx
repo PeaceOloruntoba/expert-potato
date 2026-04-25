@@ -1,5 +1,6 @@
-import { useState, useMemo, useEffect } from 'react';
-import { View, Text, ScrollView, SafeAreaView, TouchableOpacity, RefreshControl, StyleSheet, TextInput, Platform, ViewStyle } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { useState, useMemo, useEffect } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, RefreshControl, StyleSheet, TextInput, Platform, ViewStyle } from 'react-native';
 import { Search, MapPin, Clock, Users, Bus } from 'lucide-react-native';
 import { useAuth } from '../../stores/auth';
 import { useRoutes, type Route } from '../../stores/routes';
@@ -15,6 +16,8 @@ export default function HomeScreen() {
     useEffect(() => {
         fetchRoutes();
     }, []);
+
+    console.log(routes)
 
     const filteredRoutes = useMemo(() => routes.filter((r: Route) => 
         r.origin.toLowerCase().includes(search.toLowerCase()) || 
@@ -115,7 +118,7 @@ export default function HomeScreen() {
                                     </View>
                                 </View>
                                 <View style={styles.nextDepartureBadge as ViewStyle}>
-                                    <Text style={styles.nextDepartureText}>Next: {route.departures[0]}</Text>
+                                    <Text style={styles.nextDepartureText}>Next: {route.departures?.[0] || 'N/A'}</Text>
                                 </View>
                             </View>
                         </TouchableOpacity>

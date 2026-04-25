@@ -1,5 +1,6 @@
-import { useState, useMemo } from 'react';
-import { View, Text, ScrollView, SafeAreaView, TouchableOpacity, StyleSheet, Platform, ViewStyle } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { useState, useMemo } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Platform, ViewStyle } from 'react-native';
 import { User as UserIcon, LogOut, ChevronRight, Bell, Shield, HelpCircle } from 'lucide-react-native';
 import { useAuth } from '../../stores/auth';
 import { useBookings } from '../../stores/bookings';

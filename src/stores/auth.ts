@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import api from "../utils/api";
+import api, { setAuthToken } from "../utils/api";
 
 export type User = {
     id: string;
@@ -35,6 +35,7 @@ export const useAuth = create<AuthState>((set) => ({
             
             if (verified) {
                 set({ user, token, loading: false });
+                setAuthToken(token);
             } else {
                 set({ loading: false });
             }
@@ -114,5 +115,8 @@ export const useAuth = create<AuthState>((set) => ({
         }
     },
 
-    logout: () => set({ user: null, token: null }),
+    logout: () => {
+        set({ user: null, token: null });
+        setAuthToken(null);
+    },
 }));

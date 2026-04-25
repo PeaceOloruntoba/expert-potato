@@ -1,5 +1,6 @@
+import { SafeAreaView } from 'react-native-safe-area-context';
 import React from 'react';
-import { SafeAreaView, TouchableOpacity, View, Text, ActivityIndicator, Alert, StyleSheet } from 'react-native';
+import { TouchableOpacity, View, Text, ActivityIndicator, Alert, StyleSheet } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
