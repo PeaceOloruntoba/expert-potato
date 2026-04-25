@@ -7,6 +7,7 @@ import { useBookings } from '../../stores/bookings';
 import ConfirmationModal from '../../components/ui/ConfirmationModal';
 import Button from '../../components/ui/Button';
 import { Colors, BorderRadius, Spacing } from '@/constants/theme';
+import { router } from 'expo-router';
 
 export default function ProfileScreen() {
     const { user, logout } = useAuth();
@@ -33,9 +34,9 @@ export default function ProfileScreen() {
                     </View>
                     <Text style={styles.userName}>{user?.name || 'User'}</Text>
                     <Text style={styles.userEmail}>{user?.email || 'email@uniph.edu.ng'}</Text>
-                    {user?.matric && (
+                    {user?.matric_number && (
                         <View style={styles.matricBadge as ViewStyle}>
-                            <Text style={styles.matricText}>{user.matric}</Text>
+                            <Text style={styles.matricText}>{user.matric_number}</Text>
                         </View>
                     )}
                 </View>
@@ -55,13 +56,13 @@ export default function ProfileScreen() {
 
                 <View style={styles.menuCard as ViewStyle}>
                     {[
-                        { label: 'Personal Information', icon: UserIcon },
-                        { label: 'Notifications', icon: Bell },
-                        { label: 'Security & Password', icon: Shield },
-                        { label: 'Help & Support', icon: HelpCircle },
+                        { label: 'Personal Information', icon: UserIcon, path: '/personal-info' },
+                        { label: 'Notifications', icon: Bell, path: '/notifications' },
+                        { label: 'Help & Support', icon: HelpCircle, path: '/help' },
                     ].map((item, index, arr) => (
                         <TouchableOpacity 
                             key={item.label} 
+                            onPress={() => item.path && router.push(item.path as any)}
                             style={[
                                 styles.menuItem,
                                 index !== arr.length - 1 ? styles.menuItemBorder : null

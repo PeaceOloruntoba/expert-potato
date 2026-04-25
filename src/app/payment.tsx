@@ -18,8 +18,17 @@ export default function PaymentScreen() {
         
         // Check if the URL matches Paystack's default close/callback pattern
         if (url.includes('callback') || url.includes('finish') || url.includes('success')) {
+            const urlParams = new URLSearchParams(url.split('?')[1]);
+            const paystackRef = urlParams.get('reference');
+            const finalReference = paystackRef || (reference as string);
+
+            if (!finalReference) {
+                Alert.alert("Payment Error", "Payment reference not found.");
+                router.back();
+                return;
+            }
             try {
-                const result = await verifyPayment(reference as string);
+                const result = await verifyPayment(finalReference);
                 if (result.success) {
                     Alert.alert("Success", "Payment verified successfully!", [
                         { text: "View Tickets", onPress: () => router.replace('/(tabs)/tickets' as any) }

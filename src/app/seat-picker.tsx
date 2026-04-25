@@ -4,6 +4,7 @@ import { View, Text, ScrollView, TouchableOpacity, Alert, StyleSheet, Platform, 
 import { ArrowLeft } from 'lucide-react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useRoutes } from '@/stores/routes';
+import { useFleet } from '@/stores/fleet';
 import { useBookings } from '@/stores/bookings';
 import Button from '@/components/ui/Button';
 import ConfirmationModal from '@/components/ui/ConfirmationModal';
@@ -13,9 +14,11 @@ export default function SeatPickerScreen() {
     const router = useRouter();
     const { routeId } = useLocalSearchParams();
     const { routes } = useRoutes();
+    const { buses, fetchBuses } = useFleet();
     const { addBooking, loading, bookedSeats, fetchBookedSeats } = useBookings();
     
     const route = routes.find(r => r.id === routeId);
+    const bus = buses.find(b => b.id === route?.bus_id);
     const [selectedSeats, setSelectedSeats] = useState<number[]>([]);
     const [dep, setDep] = useState(route?.departures?.[0] || '');
     const [date] = useState(new Date().toISOString().split('T')[0]);
@@ -27,7 +30,12 @@ export default function SeatPickerScreen() {
         }
     }, [route, dep, date]);
 
-    if (!route) return null;
+    // Fetch buses when the component mounts to ensure data is available
+    useEffect(() => {
+        fetchBuses();
+    }, [fetchBuses]);
+
+    if (!route || !bus) return null;
 
     const toggleSeat = (id: number, isBooked: boolean) => {
         if (isBooked) return;
@@ -70,8 +78,11 @@ export default function SeatPickerScreen() {
         }
     };
 
-    const capacity = 32; // Default capacity if not specified in route
-    const seatRows = Array.from({ length: capacity }, (_, i) => ({ id: i + 1 }));
+    const capacity = bus?.capacity || 32;
+    const frontSeatsCount = capacity <= 8 ? 1 : 2;
+    const totalSeats = Array.from({ length: capacity }, (_, i) => ({ id: i + 1 }));
+    const frontSeats = totalSeats.slice(0, frontSeatsCount);
+    const mainSeats = totalSeats.slice(frontSeatsCount);
 
     return (
         <SafeAreaView style={styles.container as ViewStyle}>
@@ -111,7 +122,7 @@ export default function SeatPickerScreen() {
                     <View style={styles.layoutHeader as ViewStyle}>
                         <Text style={styles.layoutTitle}>Bus Layout</Text>
                         <View style={styles.busPlateBadge as ViewStyle}>
-                            <Text style={styles.busPlateText}>{route.bus_plate || route.bus_id}</Text>
+                            <Text style={styles.busPlateText}>{bus.plate_number}</Text>
                         </View>
                     </View>
 
@@ -119,8 +130,33 @@ export default function SeatPickerScreen() {
                         <Text style={styles.driverText}>🚌 Driver's Area</Text>
                     </View>
 
+                    <View style={styles.frontSeatsContainer as ViewStyle}>
+                        {frontSeats.map(s => {
+                            const isBooked = bookedSeats.includes(s.id);
+                            const isSelected = selectedSeats.includes(s.id);
+                            return (
+                                <TouchableOpacity 
+                                    key={s.id} 
+                                    onPress={() => toggleSeat(s.id, isBooked)}
+                                    activeOpacity={0.7}
+                                    style={[
+                                        styles.seat,
+                                        isBooked ? styles.seatBooked : 
+                                        isSelected ? styles.seatSelected : styles.seatFree
+                                    ] as ViewStyle[]}
+                                >
+                                    <Text style={[
+                                        styles.seatText,
+                                        isBooked ? styles.seatTextBooked : 
+                                        isSelected ? styles.seatTextSelected : styles.seatTextFree
+                                    ]}>{s.id}</Text>
+                                </TouchableOpacity>
+                            );
+                        })}
+                    </View>
+
                     <View style={styles.seatsGrid as ViewStyle}>
-                        {seatRows?.map(s => {
+                        {mainSeats.map(s => {
                             const isBooked = bookedSeats.includes(s.id);
                             const isSelected = selectedSeats.includes(s.id);
                             return (
@@ -316,10 +352,22 @@ const styles = StyleSheet.create({
         textTransform: 'uppercase',
         letterSpacing: 1.5,
     },
+    frontSeatsContainer: {
+        flexDirection: 'row',
+        justifyContent: 'flex-end',
+        gap: Spacing.sm,
+        paddingVertical: Spacing.md,
+        marginBottom: Spacing.md,
+        paddingHorizontal: Spacing.lg,
+    },
     seatsGrid: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        justifyContent: 'space-between',
+        justifyContent: 'center',
+        gap: Spacing.sm,
+        paddingVertical: Spacing.lg,
+        borderTopWidth: 1,
+        borderTopColor: Colors.slate100,
     },
     seat: {
         width: '22%',

@@ -48,9 +48,11 @@ export const useBookings = create<BookingsState>((set) => ({
         set({ loading: true });
         try {
             const res = await api.post('/bookings', bookingData);
+            console.log("Creating booking...", res);
             set({ loading: false });
             return res.data.data;
-        } catch (err) {
+        } catch (err: any) {
+            console.error("Booking creation failed:", err?.response || err);
             set({ loading: false });
             throw err;
         }
