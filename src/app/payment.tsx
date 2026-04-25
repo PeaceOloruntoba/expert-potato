@@ -4,13 +4,12 @@ import { TouchableOpacity, View, Text, ActivityIndicator, Alert, StyleSheet } fr
 import { WebView } from 'react-native-webview';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
-import { useBookings } from '@/stores/bookings';
 import { Colors, BorderRadius, Spacing } from '@/constants/theme';
 
 export default function PaymentScreen() {
     const router = useRouter();
-    const { authUrl, reference } = useLocalSearchParams();
-    const { verifyPayment } = useBookings();
+    const params = useLocalSearchParams();
+    const { authUrl, reference, routeId } = params;
     const [loading, setLoading] = React.useState(true);
 
     const handleNavigationStateChange = (navState: any) => {
@@ -33,7 +32,7 @@ export default function PaymentScreen() {
                 pathname: '/seat-picker' as any,
                 params: { 
                     payment_reference: finalReference,
-                    routeId: (useLocalSearchParams() as any).routeId // Ensure routeId is preserved
+                    routeId: routeId as string
                 }
             });
         }
@@ -76,7 +75,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         paddingHorizontal: Spacing.lg,
-        paddingTop: Spacing.xl + 10,
+        paddingTop: Spacing.lg,
         paddingBottom: Spacing.md,
         backgroundColor: Colors.white,
         borderBottomWidth: 1,

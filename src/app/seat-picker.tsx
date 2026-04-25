@@ -1,6 +1,7 @@
 import { SafeAreaView } from 'react-native-safe-area-context';
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Alert, StyleSheet, Platform, ViewStyle } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Alert, StyleSheet, Platform, ViewStyle, ActivityIndicator } from 'react-native';
+import { BlurView } from 'expo-blur';
 import { ArrowLeft } from 'lucide-react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useRoutes } from '@/stores/routes';
@@ -10,9 +11,40 @@ import Button from '@/components/ui/Button';
 import ConfirmationModal from '@/components/ui/ConfirmationModal';
 import { Colors, BorderRadius, Spacing } from '@/constants/theme';
 
+function PaymentVerifier({ reference, onVerified }: { reference: string, onVerified: (result: any) => void }) {
+    const { verifyPayment } = useBookings();
+    
+    useEffect(() => {
+        const verify = async () => {
+            // Wait 15 seconds before first attempt
+            await new Promise(resolve => setTimeout(resolve, 15000));
+            
+            try {
+                let result = await verifyPayment(reference);
+                
+                // If not paid, retry once more after 5 seconds
+                if (!result.success || result.booking.payment_status !== 'paid') {
+                    console.log("First attempt failed, retrying in 5s...");
+                    await new Promise(resolve => setTimeout(resolve, 5000));
+                    result = await verifyPayment(reference);
+                }
+                
+                onVerified(result);
+            } catch (err) {
+                console.error("Verification error:", err);
+                onVerified({ success: false, error: err });
+            }
+        };
+        verify();
+    }, [reference]);
+
+    return null;
+}
+
 export default function SeatPickerScreen() {
     const router = useRouter();
-    const { routeId, payment_reference } = useLocalSearchParams();
+    const params = useLocalSearchParams();
+    const { routeId, payment_reference } = params;
     const { routes } = useRoutes();
     const { buses, fetchBuses } = useFleet();
     const { addBooking, loading, bookedSeats, fetchBookedSeats, verifyPayment } = useBookings();
@@ -24,34 +56,22 @@ export default function SeatPickerScreen() {
     const [date] = useState(new Date().toISOString().split('T')[0]);
     const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
-    // Handle payment verification if reference is present
-    useEffect(() => {
-        const verify = async () => {
-            if (payment_reference) {
-                try {
-                    const result = await verifyPayment(payment_reference as string);
-                    if (result.success && result.booking.payment_status === 'paid') {
-                        router.replace({
-                            pathname: '/(tabs)' as any,
-                            params: { 
-                                booking_success: 'true',
-                                booking_id: result.booking.id,
-                                departure_time: result.booking.departure_time,
-                                booking_date: result.booking.booking_date,
-                                seat_numbers: result.booking.seats.join(', ')
-                            }
-                        });
-                    } else {
-                        Alert.alert("Payment Failed", "Verification failed. Please check your tickets or contact support.");
-                    }
-                } catch (err) {
-                    console.error("Verification error:", err);
-                    Alert.alert("Verification Error", "An error occurred while verifying your payment.");
+    const handleVerified = (result: any) => {
+        if (result.success && result.booking.payment_status === 'paid') {
+            router.replace({
+                pathname: '/(tabs)' as any,
+                params: { 
+                    booking_success: 'true',
+                    booking_id: result.booking.id,
+                    departure_time: result.booking.departure_time,
+                    booking_date: result.booking.booking_date,
+                    seat_numbers: result.booking.seats.join(', ')
                 }
-            }
-        };
-        verify();
-    }, [payment_reference]);
+            });
+        } else {
+            Alert.alert("Payment Failed", "Verification failed. Please check your tickets or contact support.");
+        }
+    };
 
     useEffect(() => {
         if (route && dep) {
@@ -63,6 +83,29 @@ export default function SeatPickerScreen() {
     useEffect(() => {
         fetchBuses();
     }, [fetchBuses]);
+
+    if (payment_reference) {
+        return (
+            <View style={styles.container as ViewStyle}>
+                <PaymentVerifier 
+                    reference={payment_reference as string} 
+                    onVerified={handleVerified} 
+                />
+                
+                {/* Full screen blur overlay */}
+                <BlurView intensity={80} tint="light" style={StyleSheet.absoluteFill}>
+                    <View style={styles.verifierOverlay}>
+                        <ActivityIndicator size="large" color={Colors.primary} />
+                        <Text style={styles.verifierTitle}>Verifying Payment</Text>
+                        <Text style={styles.verifierSubtitle}>Please wait while we confirm your transaction...</Text>
+                        <View style={styles.verifierProgressContainer}>
+                            <Text style={styles.verifierTimerText}>This may take up to 20 seconds</Text>
+                        </View>
+                    </View>
+                </BlurView>
+            </View>
+        );
+    }
 
     if (!route || !bus) return null;
 
@@ -265,7 +308,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         paddingHorizontal: Spacing.lg,
-        paddingTop: Spacing.xl + 10,
+        paddingTop: Spacing.lg,
         paddingBottom: Spacing.lg,
         backgroundColor: Colors.white,
         borderBottomWidth: 1,
@@ -490,5 +533,35 @@ const styles = StyleSheet.create({
     },
     footerSpacer: {
         height: 40,
+    },
+    verifierOverlay: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: Spacing.xl,
+    },
+    verifierTitle: {
+        fontSize: 24,
+        fontWeight: '700',
+        color: Colors.slate900,
+        marginTop: Spacing.xl,
+    },
+    verifierSubtitle: {
+        fontSize: 16,
+        color: Colors.slate500,
+        textAlign: 'center',
+        marginTop: Spacing.sm,
+        lineHeight: 24,
+    },
+    verifierProgressContainer: {
+        marginTop: Spacing.xl * 2,
+        alignItems: 'center',
+    },
+    verifierTimerText: {
+        fontSize: 12,
+        color: Colors.slate400,
+        fontWeight: '500',
+        textTransform: 'uppercase',
+        letterSpacing: 1,
     },
 });

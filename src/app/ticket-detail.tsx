@@ -120,7 +120,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         paddingHorizontal: Spacing.lg,
-        paddingTop: Spacing.xl + 10,
+        paddingTop: Spacing.lg,
         paddingBottom: Spacing.lg,
         backgroundColor: Colors.white,
         borderBottomWidth: 1,
