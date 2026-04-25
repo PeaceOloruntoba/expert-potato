@@ -218,7 +218,7 @@ export default function SeatPickerScreen() {
                 onConfirm={confirmBooking}
                 title="Confirm Booking"
                 description={`You are about to book ${selectedSeats.length} seat(s) for ₦${route.fare * selectedSeats.length}. Proceed to payment?`}
-                confirmText="Yes, Proceed to Payment"
+                confirmText="Yes, Proceed"
                 variant="proceed"
                 isLoading={loading}
             />

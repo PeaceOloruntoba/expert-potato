@@ -17,7 +17,8 @@ export default function ProfileScreen() {
     const stats = useMemo(() => {
         const used = bookings.filter((b) => b.status === 'used').length;
         const active = bookings.filter((b) => b.status === 'confirmed').length;
-        const spent = bookings.filter((b) => b.status !== 'cancelled').reduce((acc, b) => acc + (b.total_fare || 0), 0);
+        const spent = bookings.filter((b) => b.status !== 'cancelled' && b.payment_status === 'paid').reduce((acc, b) => acc + (b.total_fare || 0), 0);
+
         return { used, active, spent };
     }, [bookings]);
 
@@ -45,7 +46,7 @@ export default function ProfileScreen() {
                     {[
                         { label: 'Trips', value: stats.used, color: '#3b82f6' },
                         { label: 'Active', value: stats.active, color: Colors.primary },
-                        { label: 'Spent', value: `₦${stats.spent}`, color: '#f59e0b' },
+                        { label: 'Spent', value: `₦${Math.floor(stats.spent)}`, color: '#f59e0b' },
                     ].map(item => (
                         <View key={item.label} style={styles.statCard as ViewStyle}>
                             <Text style={[styles.statValue, { color: item.color }]}>{item.value}</Text>
@@ -114,7 +115,7 @@ const styles = StyleSheet.create({
     },
     header: {
         paddingHorizontal: Spacing.lg,
-        paddingTop: Spacing.xl + 10,
+        paddingTop: Spacing.xl,
         paddingBottom: Spacing.lg,
         backgroundColor: Colors.white,
         borderBottomWidth: 1,
@@ -190,14 +191,14 @@ const styles = StyleSheet.create({
     },
     statsRow: {
         flexDirection: 'row',
-        gap: Spacing.md,
+        gap: Spacing.sm,
         marginBottom: Spacing.xl,
     },
     statCard: {
         flex: 1,
         backgroundColor: Colors.white,
-        padding: Spacing.lg,
-        borderRadius: 28,
+        padding: Spacing.sm,
+        borderRadius: 14,
         alignItems: 'center',
         borderWidth: 1,
         borderColor: Colors.slate100,

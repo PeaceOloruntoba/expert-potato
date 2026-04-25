@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking } from 'r
 import { Stack, useRouter } from 'expo-router';
 import { ChevronLeft, MessageCircle, Phone, Mail, ExternalLink, HelpCircle } from 'lucide-react-native';
 import { Colors } from '@/constants/theme';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function HelpScreen() {
     const router = useRouter();
@@ -12,7 +13,7 @@ export default function HelpScreen() {
     const handleWhatsApp = () => Linking.openURL('https://wa.me/2348000000000');
 
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={styles.container}>
             <Stack.Screen 
                 options={{
                     headerTitle: 'Help & Support',
@@ -97,7 +98,7 @@ export default function HelpScreen() {
                     <Text style={styles.versionText}>Campus Transit v1.0.0</Text>
                 </View>
             </ScrollView>
-        </View>
+        </SafeAreaView>
     );
 }
 

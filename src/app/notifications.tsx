@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { Stack, useRouter } from 'expo-router';
 import { ChevronLeft, Bell, BellOff, Info } from 'lucide-react-native';
 import { Colors } from '@/constants/theme';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function NotificationsScreen() {
     const router = useRouter();
@@ -25,7 +26,7 @@ export default function NotificationsScreen() {
     ];
 
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={styles.container}>
             <Stack.Screen 
                 options={{
                     headerTitle: 'Notifications',
@@ -65,7 +66,7 @@ export default function NotificationsScreen() {
                     <Text style={styles.emptySubtitle}>We'll notify you when something important happens.</Text>
                 </View>
             )}
-        </View>
+        </SafeAreaView>
     );
 }
 

@@ -4,6 +4,7 @@ import { Stack, useRouter } from 'expo-router';
 import { User as UserIcon, Mail, Phone, Hash, ChevronLeft, Save } from 'lucide-react-native';
 import { useAuth } from '../stores/auth';
 import { Colors } from '@/constants/theme';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function PersonalInfoScreen() {
     const router = useRouter();
@@ -24,7 +25,7 @@ export default function PersonalInfoScreen() {
     };
 
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={styles.container}>
             <Stack.Screen 
                 options={{
                     headerTitle: 'Personal Information',
@@ -113,7 +114,7 @@ export default function PersonalInfoScreen() {
                     <Text style={styles.saveButtonText}>{loading ? 'Saving...' : 'Save Changes'}</Text>
                 </TouchableOpacity>
             </ScrollView>
-        </View>
+        </SafeAreaView>
     );
 }
 

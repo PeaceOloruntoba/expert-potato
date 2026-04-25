@@ -1,11 +1,19 @@
 import { Tabs } from "expo-router";
+import React, { useEffect } from "react"
 import { Bus, Ticket, User } from "lucide-react-native";
 import { View, Text, StyleSheet } from "react-native";
 import { useBookings } from "../../stores/bookings";
 import { Colors } from "@/constants/theme";
+import { useAuth } from "@/stores/auth";
 
 export default function TabLayout() {
-    const { bookings } = useBookings();
+    const { bookings, fetchMyBookings } = useBookings();
+    const { user } = useAuth();
+
+    useEffect(() => {
+        if (user) fetchMyBookings(user.id);
+    }, [user]);
+    
     const activeCount = bookings.filter(b => b.status === 'confirmed').length;
 
     return (

@@ -1,5 +1,5 @@
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useState, useMemo, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, RefreshControl, StyleSheet, Platform, ViewStyle } from 'react-native';
 import { Ticket as TicketIcon, Calendar, Clock, Users } from 'lucide-react-native';
 import { useBookings, type Booking } from '../../stores/bookings';
