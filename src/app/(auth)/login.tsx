@@ -48,7 +48,7 @@ export default function LoginScreen() {
                         <View style={styles.logoContainer as ViewStyle}>
                             <Bus size={48} color={Colors.white} />
                         </View>
-                        <Text style={styles.appName}>CAMPUSTRANSIT</Text>
+                        <Text style={styles.appName}>PAULO</Text>
                         <Text style={styles.uniName}>University of Port Harcourt</Text>
                     </View>
 

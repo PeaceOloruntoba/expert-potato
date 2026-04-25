@@ -58,7 +58,7 @@ export default function SeatPickerScreen() {
 
     const handleVerified = (result: any) => {
         if (result.success && result.booking.payment_status === 'paid') {
-            router.replace({
+            router.push({
                 pathname: '/(tabs)' as any,
                 params: { 
                     booking_success: 'true',
@@ -93,13 +93,13 @@ export default function SeatPickerScreen() {
                 />
                 
                 {/* Full screen blur overlay */}
-                <BlurView intensity={80} tint="light" style={StyleSheet.absoluteFill}>
+                <BlurView intensity={30} tint="light" style={StyleSheet.absoluteFill}>
                     <View style={styles.verifierOverlay}>
                         <ActivityIndicator size="large" color={Colors.primary} />
                         <Text style={styles.verifierTitle}>Verifying Payment</Text>
                         <Text style={styles.verifierSubtitle}>Please wait while we confirm your transaction...</Text>
                         <View style={styles.verifierProgressContainer}>
-                            <Text style={styles.verifierTimerText}>This may take up to 20 seconds</Text>
+                            <Text style={styles.verifierTimerText}>This may take up to 20 seconds, please be patient</Text>
                         </View>
                     </View>
                 </BlurView>

@@ -1,13 +1,13 @@
 {
   "expo": {
-    "name": "CampusTransit",
-    "slug": "CampusTransit",
+    "name": "Paulo",
+    "slug": "Paulo",
     "scheme": "acme",
     "orientation": "default",
     "userInterfaceStyle": "automatic",
     "icon": "./src/assets/app-icon.png",
     "android": {
-      "package": "com.expert.potato",
+      "package": "com.paulo.peacecodes",
       "adaptiveIcon": {
         "foregroundImage": "./src/assets/app-icon.png",
         "backgroundColor": "#0B2E13"

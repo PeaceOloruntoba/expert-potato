@@ -9,7 +9,7 @@ export default function HelpScreen() {
     const router = useRouter();
 
     const handleCall = () => Linking.openURL('tel:+2348000000000');
-    const handleEmail = () => Linking.openURL('mailto:support@campustransit.edu');
+    const handleEmail = () => Linking.openURL('mailto:support@paulo.com');
     const handleWhatsApp = () => Linking.openURL('https://wa.me/2348000000000');
 
     return (
@@ -87,7 +87,7 @@ export default function HelpScreen() {
                             </View>
                             <View style={styles.contactInfo}>
                                 <Text style={styles.contactLabel}>Email Us</Text>
-                                <Text style={styles.contactValue}>support@campustransit.edu</Text>
+                                <Text style={styles.contactValue}>support@paulo.com</Text>
                             </View>
                             <ExternalLink size={16} color={Colors.slate300} />
                         </TouchableOpacity>

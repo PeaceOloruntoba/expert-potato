@@ -20,8 +20,11 @@ export default function HomeScreen() {
     useEffect(() => {
         if (params.booking_success === 'true') {
             setIsSuccessModalOpen(true);
-            // Clear params by replacing current route
-            router.replace('/(tabs)');
+            // Slightly delay the replacement to ensure the modal shows up
+            const timer = setTimeout(() => {
+                router.setParams({ booking_success: undefined });
+            }, 500);
+            return () => clearTimeout(timer);
         }
     }, [params.booking_success]);
 
