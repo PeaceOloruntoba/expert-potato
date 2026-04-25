@@ -1,46 +1,60 @@
 import { useState } from 'react';
-import { View, Text, SafeAreaView, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, StyleSheet } from 'react-native';
+import { View, Text, SafeAreaView, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, StyleSheet, ViewStyle, Alert } from 'react-native';
 import { Mail, ArrowLeft, AlertCircle } from 'lucide-react-native';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import { useRouter } from 'expo-router';
+import { useAuth } from '../../stores/auth';
 import { Colors, BorderRadius, Spacing } from '@/constants/theme';
 
 export default function ForgotPasswordScreen() {
     const router = useRouter();
+    const { forgotPassword, loading } = useAuth();
     const [email, setEmail] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     const handleReset = async () => {
-        setIsLoading(true);
-        setTimeout(() => {
-            setIsLoading(false);
-            router.push('/otp-verification');
-        }, 1500);
+        setError(null);
+        if (!email) {
+            setError("Please enter your email address");
+            return;
+        }
+        try {
+            const result = await forgotPassword(email);
+            Alert.alert("Success", "Reset code sent to your email!", [
+                { text: "Continue", onPress: () => router.push({ 
+                    pathname: '/reset-password' as any, 
+                    params: { email, user_id: result.user_id } 
+                }) }
+            ]);
+        } catch (err: any) {
+            const msg = err.response?.data?.message || err.message || "Request failed";
+            setError(msg);
+        }
     };
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={styles.container as ViewStyle}>
             <KeyboardAvoidingView 
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                style={styles.flex1}
+                style={styles.flex1 as ViewStyle}
             >
-                <View style={styles.header}>
-                    <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+                <View style={styles.header as ViewStyle}>
+                    <TouchableOpacity onPress={() => router.back()} style={styles.backButton as ViewStyle}>
                         <ArrowLeft size={24} color={Colors.white} />
                     </TouchableOpacity>
                 </View>
 
-                <ScrollView contentContainerStyle={styles.scrollContainer} style={styles.flex1} showsVerticalScrollIndicator={false}>
-                    <View style={styles.hero}>
-                        <View style={styles.logoContainer}>
+                <ScrollView contentContainerStyle={styles.scrollContainer as ViewStyle} style={styles.flex1 as ViewStyle} showsVerticalScrollIndicator={false}>
+                    <View style={styles.hero as ViewStyle}>
+                        <View style={styles.logoContainer as ViewStyle}>
                             <AlertCircle size={40} color={Colors.white} />
                         </View>
                         <Text style={styles.title}>Forgot Password?</Text>
                         <Text style={styles.subtitle}>Don't worry! Enter your email to reset your password</Text>
                     </View>
 
-                    <View style={styles.form}>
+                    <View style={styles.form as ViewStyle}>
                         <Input 
                             label="Email Address"
                             placeholder="e.g. chidi@uniph.edu.ng"
@@ -52,10 +66,16 @@ export default function ForgotPasswordScreen() {
                             onChangeText={setEmail}
                         />
 
+                        {error && (
+                            <View style={styles.errorContainer as ViewStyle}>
+                                <Text style={styles.errorText}>{error}</Text>
+                            </View>
+                        )}
+
                         <Button 
                             onPress={handleReset}
-                            isLoading={isLoading}
-                            style={styles.resetButton}
+                            isLoading={loading}
+                            style={styles.resetButton as ViewStyle}
                         >
                             Send Reset Code
                         </Button>
@@ -125,6 +145,20 @@ const styles = StyleSheet.create({
         marginTop: 8,
         fontSize: 14,
         fontWeight: '500',
+        textAlign: 'center',
+    },
+    errorContainer: {
+        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+        padding: Spacing.md,
+        borderRadius: BorderRadius.lg,
+        marginTop: Spacing.md,
+        borderWidth: 1,
+        borderColor: 'rgba(239, 68, 68, 0.2)',
+    },
+    errorText: {
+        color: '#ef4444',
+        fontSize: 14,
+        fontWeight: '600',
         textAlign: 'center',
     },
     form: {

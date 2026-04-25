@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { View, Text, SafeAreaView, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, StyleSheet, ViewStyle } from 'react-native';
-import { Bus, Mail, Lock, User as UserIcon, Shield } from 'lucide-react-native';
+import { View, Text, SafeAreaView, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, StyleSheet, ViewStyle, Alert } from 'react-native';
+import { Bus, Mail, Lock, User as UserIcon } from 'lucide-react-native';
 import { useAuth } from '../../stores/auth';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
@@ -11,9 +11,29 @@ export default function LoginScreen() {
     const { login, loading } = useAuth();
     const router = useRouter();
     const [form, setForm] = useState({ email: '', password: '' });
+    const [error, setError] = useState<string | null>(null);
 
-    const handleLogin = async (role: 'student' | 'admin') => {
-        await login(role);
+    const handleLogin = async () => {
+        setError(null);
+        if (!form.email || !form.password) {
+            setError("Please fill in all fields");
+            return;
+        }
+        try {
+            const result = await login(form);
+            if (!result.verified) {
+                Alert.alert("Verify Account", "Please verify your account to continue.", [
+                    { text: "Verify Now", onPress: () => router.push({ 
+                        pathname: '/otp-verification' as any, 
+                        params: { email: form.email, user_id: result.user_id } 
+                    }) }
+                ]);
+            }
+            // RootLayout handles redirection for verified users
+        } catch (err: any) {
+            const msg = err.response?.data?.message || err.message || "Login failed";
+            setError(msg);
+        }
     };
 
     return (
@@ -62,23 +82,19 @@ export default function LoginScreen() {
                             <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
                         </TouchableOpacity>
 
+                        {error && (
+                            <View style={styles.errorContainer as ViewStyle}>
+                                <Text style={styles.errorText}>{error}</Text>
+                            </View>
+                        )}
+
                         <Button 
-                            onPress={() => handleLogin('student')}
+                            onPress={handleLogin}
                             isLoading={loading}
                             icon={<UserIcon size={20} color={Colors.white} />}
                             style={styles.studentButton as ViewStyle}
                         >
-                            Student Login
-                        </Button>
-
-                        <Button 
-                            onPress={() => handleLogin('admin')}
-                            variant="outline"
-                            isLoading={loading}
-                            icon={<Shield size={20} color={Colors.slate400} />}
-                            style={styles.adminButton as ViewStyle}
-                        >
-                            <Text style={styles.adminButtonText}>Admin Dashboard</Text>
+                            Sign In
                         </Button>
 
                         <View style={styles.signupRow as ViewStyle}>
@@ -142,6 +158,20 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: '500',
     },
+    errorContainer: {
+        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+        padding: Spacing.md,
+        borderRadius: BorderRadius.lg,
+        marginBottom: Spacing.lg,
+        borderWidth: 1,
+        borderColor: 'rgba(239, 68, 68, 0.2)',
+    },
+    errorText: {
+        color: '#ef4444',
+        fontSize: 14,
+        fontWeight: '600',
+        textAlign: 'center',
+    },
     form: {
         flex: 1,
     },
@@ -170,16 +200,6 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.2,
         shadowRadius: 10,
         elevation: 5,
-    },
-    adminButton: {
-        height: 64,
-        borderRadius: BorderRadius.xl,
-        backgroundColor: 'rgba(255, 255, 255, 0.05)',
-        borderColor: Colors.slate700,
-    },
-    adminButtonText: {
-        color: Colors.slate300,
-        fontWeight: '700',
     },
     signupRow: {
         flexDirection: 'row',

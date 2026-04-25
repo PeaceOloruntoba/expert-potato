@@ -6,21 +6,22 @@ import { useAuth } from '../stores/auth';
 
 export default function RootLayout() {
     const colorScheme = useColorScheme();
-    const { user } = useAuth();
+    const { user, token } = useAuth();
     const segments = useSegments();
     const router = useRouter();
 
     useEffect(() => {
         const inAuthGroup = segments[0] === '(auth)';
+        const isAuthenticated = !!token && !!user;
 
-        if (!user && !inAuthGroup) {
+        if (!isAuthenticated && !inAuthGroup) {
             // Redirect to login if not authenticated
             router.replace('/(auth)/login');
-        } else if (user && inAuthGroup) {
+        } else if (isAuthenticated && inAuthGroup) {
             // Redirect to home if authenticated
             router.replace('/(tabs)');
         }
-    }, [user, segments]);
+    }, [user, token, segments]);
 
     return (
         <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>

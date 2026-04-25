@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { View, Text, SafeAreaView, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, StyleSheet, ViewStyle } from 'react-native';
-import { Bus, Mail, Lock, User as UserIcon, ArrowLeft, Hash } from 'lucide-react-native';
+import { View, Text, SafeAreaView, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, StyleSheet, ViewStyle, Alert } from 'react-native';
+import { Bus, Mail, Lock, User as UserIcon, ArrowLeft, Hash, Phone } from 'lucide-react-native';
 import { useAuth } from '../../stores/auth';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
@@ -8,14 +8,29 @@ import { Link, useRouter } from 'expo-router';
 import { Colors, BorderRadius, Spacing } from '@/constants/theme';
 
 export default function SignupScreen() {
-    const { loading } = useAuth();
+    const { signup, loading } = useAuth();
     const router = useRouter();
-    const [form, setForm] = useState({ name: '', email: '', matric: '', password: '' });
+    const [form, setForm] = useState({ name: '', email: '', phone: '', matric_number: '', password: '' });
+    const [error, setError] = useState<string | null>(null);
 
     const handleSignup = async () => {
-        // Mock signup
-        console.log('Signup payload:', form);
-        router.push('/otp-verification' as any);
+        setError(null);
+        if (!form.name || !form.email || !form.phone || !form.matric_number || !form.password) {
+            setError("Please fill in all fields");
+            return;
+        }
+        try {
+            const result = await signup(form);
+            Alert.alert("Success", "Account created successfully! Please verify your email.", [
+                { text: "Verify Now", onPress: () => router.push({ 
+                    pathname: '/otp-verification' as any, 
+                    params: { email: form.email, user_id: result.user_id } 
+                }) }
+            ]);
+        } catch (err: any) {
+            const msg = err.response?.data?.message || err.message || "Signup failed";
+            setError(msg);
+        }
     };
 
     return (
@@ -61,13 +76,23 @@ export default function SignupScreen() {
                         />
 
                         <Input 
+                            label="Phone Number"
+                            placeholder="e.g. 08012345678"
+                            placeholderTextColor={Colors.slate500}
+                            leftIcon={<Phone size={20} color={Colors.slate400} />}
+                            keyboardType="phone-pad"
+                            value={form.phone}
+                            onChangeText={(text) => setForm({ ...form, phone: text })}
+                        />
+
+                        <Input 
                             label="Matric Number"
                             placeholder="e.g. CSC/2021/042"
                             placeholderTextColor={Colors.slate500}
                             leftIcon={<Hash size={20} color={Colors.slate400} />}
                             autoCapitalize="characters"
-                            value={form.matric}
-                            onChangeText={(text) => setForm({ ...form, matric: text })}
+                            value={form.matric_number}
+                            onChangeText={(text) => setForm({ ...form, matric_number: text })}
                         />
 
                         <Input 
@@ -79,6 +104,12 @@ export default function SignupScreen() {
                             value={form.password}
                             onChangeText={(text) => setForm({ ...form, password: text })}
                         />
+
+                        {error && (
+                            <View style={styles.errorContainer as ViewStyle}>
+                                <Text style={styles.errorText}>{error}</Text>
+                            </View>
+                        )}
 
                         <Button 
                             onPress={handleSignup}
@@ -161,6 +192,20 @@ const styles = StyleSheet.create({
         marginTop: 8,
         fontSize: 14,
         fontWeight: '500',
+    },
+    errorContainer: {
+        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+        padding: Spacing.md,
+        borderRadius: BorderRadius.lg,
+        marginTop: Spacing.md,
+        borderWidth: 1,
+        borderColor: 'rgba(239, 68, 68, 0.2)',
+    },
+    errorText: {
+        color: '#ef4444',
+        fontSize: 14,
+        fontWeight: '600',
+        textAlign: 'center',
     },
     form: {
         flex: 1,

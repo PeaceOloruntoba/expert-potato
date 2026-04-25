@@ -1,16 +1,19 @@
 import { useState, useRef } from 'react';
-import { View, Text, SafeAreaView, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, TextInput, StyleSheet } from 'react-native';
+import { View, Text, SafeAreaView, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, TextInput, StyleSheet, ViewStyle, Alert } from 'react-native';
 import { ArrowLeft, CheckCircle2 } from 'lucide-react-native';
 import Button from '../../components/ui/Button';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useAuth } from '../../stores/auth';
 import { Colors, BorderRadius, Spacing } from '@/constants/theme';
 
 export default function OTPVerificationScreen() {
     const router = useRouter();
+    const { email, user_id } = useLocalSearchParams();
+    const { verifyOTP, resendOTP, loading } = useAuth();
     const [otp, setOtp] = useState(['', '', '', '']);
     const inputs = useRef<(TextInput | null)[]>([]);
-    const [isLoading, setIsLoading] = useState(false);
     const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
+    const [error, setError] = useState<string | null>(null);
 
     const handleOTPChange = (text: string, index: number) => {
         const newOtp = [...otp];
@@ -23,35 +26,64 @@ export default function OTPVerificationScreen() {
     };
 
     const handleVerify = async () => {
-        setIsLoading(true);
-        setTimeout(() => {
-            setIsLoading(false);
-            router.push('/reset-password');
-        }, 1500);
+        setError(null);
+        const code = otp.join('');
+        if (code.length < 4) {
+            setError("Please enter the full 4-digit code");
+            return;
+        }
+        if (!user_id) {
+            setError("User ID is missing. Please try signing up again.");
+            return;
+        }
+        try {
+            await verifyOTP({ user_id, otp: code });
+            Alert.alert("Success", "Email verified successfully!", [
+                { text: "Continue", onPress: () => router.replace('/(tabs)' as any) }
+            ]);
+        } catch (err: any) {
+            const msg = err.response?.data?.message || err.message || "Verification failed";
+            setError(msg);
+        }
+    };
+
+    const handleResend = async () => {
+        setError(null);
+        if (!user_id) {
+            setError("User ID is missing.");
+            return;
+        }
+        try {
+            await resendOTP(user_id as string);
+            Alert.alert("Success", "A new code has been sent to your email.");
+        } catch (err: any) {
+            const msg = err.response?.data?.message || err.message || "Resend failed";
+            setError(msg);
+        }
     };
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={styles.container as ViewStyle}>
             <KeyboardAvoidingView 
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                style={styles.flex1}
+                style={styles.flex1 as ViewStyle}
             >
-                <View style={styles.header}>
-                    <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+                <View style={styles.header as ViewStyle}>
+                    <TouchableOpacity onPress={() => router.back()} style={styles.backButton as ViewStyle}>
                         <ArrowLeft size={24} color={Colors.white} />
                     </TouchableOpacity>
                 </View>
 
-                <ScrollView contentContainerStyle={styles.scrollContainer} style={styles.flex1} showsVerticalScrollIndicator={false}>
-                    <View style={styles.hero}>
-                        <View style={styles.logoContainer}>
+                <ScrollView contentContainerStyle={styles.scrollContainer as ViewStyle} style={styles.flex1 as ViewStyle} showsVerticalScrollIndicator={false}>
+                    <View style={styles.hero as ViewStyle}>
+                        <View style={styles.logoContainer as ViewStyle}>
                             <CheckCircle2 size={40} color={Colors.white} />
                         </View>
                         <Text style={styles.title}>Verification</Text>
-                        <Text style={styles.subtitle}>Enter the 4-digit code sent to your email</Text>
+                        <Text style={styles.subtitle}>Enter the 4-digit code sent to {email || 'your email'}</Text>
                     </View>
 
-                    <View style={styles.otpRow}>
+                    <View style={styles.otpRow as ViewStyle}>
                         {otp.map((digit, index) => (
                             <TextInput
                                 key={index}
@@ -70,18 +102,24 @@ export default function OTPVerificationScreen() {
                         ))}
                     </View>
 
+                    {error && (
+                        <View style={styles.errorContainer as ViewStyle}>
+                            <Text style={styles.errorText}>{error}</Text>
+                        </View>
+                    )}
+
                     <Button 
                         onPress={handleVerify}
-                        isLoading={isLoading}
-                        style={styles.verifyButton}
+                        isLoading={loading}
+                        style={styles.verifyButton as ViewStyle}
                     >
                         Verify Code
                     </Button>
 
-                    <View style={styles.resendRow}>
+                    <View style={styles.resendRow as ViewStyle}>
                         <Text style={styles.resendLabel}>Didn't receive code? </Text>
-                        <TouchableOpacity>
-                            <Text style={styles.resendText}>Resend Code</Text>
+                        <TouchableOpacity onPress={handleResend} disabled={loading}>
+                            <Text style={[styles.resendText, loading && { opacity: 0.5 }]}>Resend Code</Text>
                         </TouchableOpacity>
                     </View>
 
@@ -148,6 +186,20 @@ const styles = StyleSheet.create({
         marginTop: 8,
         fontSize: 14,
         fontWeight: '500',
+        textAlign: 'center',
+    },
+    errorContainer: {
+        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+        padding: Spacing.md,
+        borderRadius: BorderRadius.lg,
+        marginBottom: Spacing.lg,
+        borderWidth: 1,
+        borderColor: 'rgba(239, 68, 68, 0.2)',
+    },
+    errorText: {
+        color: '#ef4444',
+        fontSize: 14,
+        fontWeight: '600',
         textAlign: 'center',
     },
     otpRow: {

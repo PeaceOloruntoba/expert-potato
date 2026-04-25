@@ -1,54 +1,94 @@
 import { useState } from 'react';
-import { View, Text, SafeAreaView, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, StyleSheet } from 'react-native';
-import { Lock, ArrowLeft, ShieldCheck } from 'lucide-react-native';
+import { View, Text, SafeAreaView, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, StyleSheet, ViewStyle, Alert } from 'react-native';
+import { Lock, ArrowLeft, ShieldCheck, Hash } from 'lucide-react-native';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useAuth } from '../../stores/auth';
 import { Colors, BorderRadius, Spacing } from '@/constants/theme';
 
 export default function ResetPasswordScreen() {
     const router = useRouter();
-    const [passwords, setPasswords] = useState({ password: '', confirm: '' });
-    const [isLoading, setIsLoading] = useState(false);
+    const { email: emailParam, user_id } = useLocalSearchParams();
+    const { resetPassword, loading } = useAuth();
+    const [form, setForm] = useState({ email: (emailParam as string) || '', otp: '', password: '', confirm: '' });
+    const [error, setError] = useState<string | null>(null);
 
     const handleReset = async () => {
-        setIsLoading(true);
-        setTimeout(() => {
-            setIsLoading(false);
-            router.push('/login');
-        }, 1500);
+        setError(null);
+        if (!form.email || !form.otp || !form.password || !form.confirm) {
+            setError("Please fill in all fields");
+            return;
+        }
+        if (form.password !== form.confirm) {
+            setError("Passwords do not match");
+            return;
+        }
+        if (!user_id) {
+            setError("User ID is missing. Please try again.");
+            return;
+        }
+        try {
+            await resetPassword({ user_id, otp: form.otp, password: form.password });
+            Alert.alert("Success", "Password reset successfully!", [
+                { text: "Sign In", onPress: () => router.replace('/login' as any) }
+            ]);
+        } catch (err: any) {
+            const msg = err.response?.data?.message || err.message || "Reset failed";
+            setError(msg);
+        }
     };
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={styles.container as ViewStyle}>
             <KeyboardAvoidingView 
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                style={styles.flex1}
+                style={styles.flex1 as ViewStyle}
             >
-                <View style={styles.header}>
-                    <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+                <View style={styles.header as ViewStyle}>
+                    <TouchableOpacity onPress={() => router.back()} style={styles.backButton as ViewStyle}>
                         <ArrowLeft size={24} color={Colors.white} />
                     </TouchableOpacity>
                 </View>
 
-                <ScrollView contentContainerStyle={styles.scrollContainer} style={styles.flex1} showsVerticalScrollIndicator={false}>
-                    <View style={styles.hero}>
-                        <View style={styles.logoContainer}>
+                <ScrollView contentContainerStyle={styles.scrollContainer as ViewStyle} style={styles.flex1 as ViewStyle} showsVerticalScrollIndicator={false}>
+                    <View style={styles.hero as ViewStyle}>
+                        <View style={styles.logoContainer as ViewStyle}>
                             <ShieldCheck size={40} color={Colors.white} />
                         </View>
                         <Text style={styles.title}>Reset Password</Text>
                         <Text style={styles.subtitle}>Set your new password below</Text>
                     </View>
 
-                    <View style={styles.form}>
+                    <View style={styles.form as ViewStyle}>
+                        {!emailParam && (
+                            <Input 
+                                label="Email Address"
+                                placeholder="Enter your email"
+                                placeholderTextColor={Colors.slate500}
+                                value={form.email}
+                                onChangeText={(text) => setForm({ ...form, email: text })}
+                            />
+                        )}
+
+                        <Input 
+                            label="Verification Code"
+                            placeholder="Enter 4-digit code"
+                            placeholderTextColor={Colors.slate500}
+                            leftIcon={<Hash size={20} color={Colors.slate400} />}
+                            keyboardType="number-pad"
+                            value={form.otp}
+                            onChangeText={(text) => setForm({ ...form, otp: text })}
+                        />
+
                         <Input 
                             label="New Password"
                             placeholder="Enter new password"
                             placeholderTextColor={Colors.slate500}
                             secureTextEntry
                             leftIcon={<Lock size={20} color={Colors.slate400} />}
-                            value={passwords.password}
-                            onChangeText={(text) => setPasswords({ ...passwords, password: text })}
+                            value={form.password}
+                            onChangeText={(text) => setForm({ ...form, password: text })}
                         />
 
                         <Input 
@@ -57,14 +97,20 @@ export default function ResetPasswordScreen() {
                             placeholderTextColor={Colors.slate500}
                             secureTextEntry
                             leftIcon={<Lock size={20} color={Colors.slate400} />}
-                            value={passwords.confirm}
-                            onChangeText={(text) => setPasswords({ ...passwords, confirm: text })}
+                            value={form.confirm}
+                            onChangeText={(text) => setForm({ ...form, confirm: text })}
                         />
+
+                        {error && (
+                            <View style={styles.errorContainer as ViewStyle}>
+                                <Text style={styles.errorText}>{error}</Text>
+                            </View>
+                        )}
 
                         <Button 
                             onPress={handleReset}
-                            isLoading={isLoading}
-                            style={styles.resetButton}
+                            isLoading={loading}
+                            style={styles.resetButton as ViewStyle}
                         >
                             Reset Password
                         </Button>
@@ -134,6 +180,20 @@ const styles = StyleSheet.create({
         marginTop: 8,
         fontSize: 14,
         fontWeight: '500',
+        textAlign: 'center',
+    },
+    errorContainer: {
+        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+        padding: Spacing.md,
+        borderRadius: BorderRadius.lg,
+        marginTop: Spacing.md,
+        borderWidth: 1,
+        borderColor: 'rgba(239, 68, 68, 0.2)',
+    },
+    errorText: {
+        color: '#ef4444',
+        fontSize: 14,
+        fontWeight: '600',
         textAlign: 'center',
     },
     form: {
