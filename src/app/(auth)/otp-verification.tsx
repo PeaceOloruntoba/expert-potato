@@ -124,7 +124,7 @@ export default function OTPVerificationScreen() {
                         </TouchableOpacity>
                     </View>
 
-                    <Text style={styles.copyright}>© 2026 UNIPH Transport Services</Text>
+                    <Text style={styles.copyright}>© 2026 FUTO Transport Services</Text>
                 </ScrollView>
             </KeyboardAvoidingView>
         </SafeAreaView>
